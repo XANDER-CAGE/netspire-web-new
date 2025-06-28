@@ -1,0 +1,20 @@
+{% extends "base3.html" %}
+{% block title %}Персональный кабинет{% end %}
+{% block body %}
+
+
+<div class="container">
+  <h1>{{current_user}} <small>{{handler.name()}}</small></h1>
+
+  {% module FlashMessage(handler.get_flash_message()) %}
+  <ul class="nav nav-tabs">
+    <li{% if tab=='overview' %} class="active"{% end %}><a href="{{reverse_url('UserDashboard')}}">Обзор</a></li>
+    <li{% if tab=='finance_log' %} class="active"{% end %}><a href="{{reverse_url('UserFinanceLog')}}">Финансовая история</a></li>
+    <li{% if tab=='sessions' %} class="active"{% end %}><a href="{{reverse_url('UserSessionLog')}}">Сессии</a></li>
+    <li><a href="{{reverse_url('UserLogout')}}">Выход</a></li>
+  </ul>
+  {% block tab %}
+  {% end %}
+</div>
+
+{% end %}

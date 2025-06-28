@@ -1,0 +1,54 @@
+{% extends "admin_base.html" %}
+{% block title %}Порты: статистика{% end %}
+{% block admin_body %}
+{% import utils %}
+<div class="row-fluid">
+  <div class="span5">
+    <h3>Поставщики</h3>
+
+    <table class="table">
+      <thead>
+	<tr>
+	  <th>Поставщик</th>
+	  <th>Кол-во портов</th>
+	  <th>%</th>
+	</tr>
+      </thead>
+      <tbody>
+	{% for p_id, p in per_provider.iteritems() %}
+	<tr>
+	  <td><a href="{{reverse_url('AdminPorts')}}?provider={{p_id}}">{{p['name']}}</a></td>
+	  <td>{{p['count']}}</td>
+	  <td>{{'%.1f' % (100. * p['count'] / total)}}</td>
+	</tr>
+	{% end %}
+      </tbody>
+    </table>
+  </div>
+  <div class="span5">
+    <h3>Скорости</h3>
+
+    <table class="table">
+      <thead>
+	<tr>
+	  <th>Скорость</th>
+	  <th>Кол-во портов</th>
+	  <th>%</th>
+	</tr>
+      </thead>
+      <tbody>
+	{% for s in per_speed.itervalues() %}
+          {% if s['count'] > 0 %}
+	<tr>
+	  <td>{{s['speed'].input}} / {{s['speed'].output}}</td>
+	  <td>{{s['count']}}</td>
+	  <td>{{'%.1f' % (100. * s['count'] / total)}}</td>
+	</tr>
+          {% end %}
+	{% end %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% end %}

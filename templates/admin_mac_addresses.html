@@ -1,0 +1,107 @@
+{% extends "admin_base.html" %}
+{% block title %}MAC адреса клиентов{% end %}
+{% block admin_body %}
+ {% import utils %}
+
+ <h3>MAC адреса активных клиентов ({{len(sessions)}})</h3>
+
+ {% module FlashMessage(handler.get_flash_message()) %}
+ 
+ <div class="alert alert-info">
+   <strong><i class="fas fa-info-circle"></i> Информация о конфигурации:</strong><br>
+   Биллинг работает с удаленным BRAS через API. MAC адреса получаются через HTTP запросы к серверу PPPoE.
+ </div>
+ 
+ <div class="row-fluid">
+   <div class="span12">
+     <form method="GET" class="form-search">
+       <div class="input-append">
+         <input type="text" name="search" value="{{search_query}}" placeholder="Поиск по IP, логину, слоту или интерфейсу" class="span6">
+         <button type="submit" class="btn">Найти</button>
+         {% if search_query %}
+           <a href="?" class="btn">Сбросить</a>
+         {% end %}
+       </div>
+     </form>
+   </div>
+ </div>
+
+ <table class="table table-bordered table-condensed table-striped">
+   <thead>
+     <tr>
+       <th>Слот</th>
+       <th>Интерфейс</th>
+       <th>Логин</th>
+       <th>MAC-адрес</th>
+       <th>Клиентский IP</th>
+       <th>BRAS</th>
+       <th>Статус</th>
+     </tr>
+   </thead>
+   <tbody>
+     {% for session in sessions %}
+     <tr {% if not session.get('active') %}class="warning"{% end %}>
+       <td>{{session.get('slot', 'н/д')}}</td>
+       <td>{{session.get('interface', 'н/д')}}</td>
+       <td>
+         <strong>{{session.get('username', 'неизвестен')}}</strong>
+       </td>
+       <td>
+         <span class="label {% if session.get('mac') and session.get('mac') != 'неизвестен' %}label-info{% else %}{% end %}">
+           {{session.get('mac', 'неизвестен')}}
+         </span>
+       </td>
+       <td>
+         {% if session.get('client_ip') %}
+           {{session.get('client_ip')}}
+         {% else %}
+           <span class="text-muted">не подключен</span>
+         {% end %}
+       </td>
+       <td>
+         {% if session.get('nas_url') %}
+           <small class="text-muted">{{session.get('nas_url')}}</small>
+         {% else %}
+           <span class="text-muted">локальный</span>
+         {% end %}
+       </td>
+       <td>
+         {% if session.get('active') %}
+           <span class="label label-success">Активен</span>
+         {% else %}
+           <span class="label">Неактивен</span>
+         {% end %}
+       </td>
+     </tr>
+     {% end %}
+   </tbody>
+ </table>
+
+ {% if len(sessions) == 0 %}
+   <div class="alert alert-warning">
+     {% if search_query %}
+       По запросу "{{search_query}}" ничего не найдено.
+     {% else %}
+       <strong>Нет активных сессий</strong><br>
+       Возможные причины:
+       <ul>
+         <li>Нет подключенных клиентов</li>
+         <li>Проблемы с подключением к удаленному BRAS</li>
+         <li>API сервер BRAS недоступен</li>
+       </ul>
+       Проверьте настройку <code>nas</code> в конфигурации веб интерфейса.
+     {% end %}
+   </div>
+ {% end %}
+
+ <div class="alert alert-info">
+   <strong>Пояснения:</strong>
+   <ul>
+     <li><strong>Активен</strong> - клиент подключен и получил реальный IP адрес</li>
+     <li><strong>Неактивен</strong> - сессия зарегистрирована в PPPoE сервере, но клиент не получил IP адрес</li>
+     <li><strong>Клиентский IP</strong> - реальный IP адрес, выданный клиенту</li>
+     <li><strong>BRAS</strong> - адрес удаленного сервера PPPoE</li>
+   </ul>
+ </div>
+
+{% end %} 

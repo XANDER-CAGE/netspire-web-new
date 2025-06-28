@@ -1,0 +1,91 @@
+{% extends "user_dashboard_base.html" %}
+{% block title %}Сессии{% end %}
+{% block tab %}
+
+<h2>Сессии</h2>
+
+<form action="{{reverse_url('UserSessionLog')}}" method="GET" class="form-inline" role="form">
+  <div class="form-group">
+    <label for="from" class="sr-only">Начальная дата:</label>
+    <input type="text" name="from" id="from" value="{{from_date}}" class="form-control" placeholder="начальная дата">
+  </div>
+  <div class="form-group">
+    <label for="till" class="sr-only">Конечная дата:</label>
+    <input type="text" name="till" id="till" value="{{till_date}}" class="form-control" placeholder="конечная дата">
+  </div>
+  <button type="submit" class="btn btn-default">Показать</button>
+ </form>
+
+ {% if sessions is not None %}
+  <table class="table table-bordered table-striped">
+    <thead>
+      <tr>
+	<th rowspan="2">Начало</th>
+	<th rowspan="2">Конец</th>
+	<th rowspan="2">IP-адрес</th>
+	<th colspan="3">Входящий трафик, МБ</th>
+	<th colspan="3">Исходящий трафик, МБ</th>
+	<th rowspan="2">Сумма</th>
+      </tr>
+      <tr>
+	<th>Всего</th>
+	<th>Интернет</th>
+	<th>TasIX</th>
+	<th>Всего</th>
+	<th>Интернет</th>
+	<th>TasIX</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% set total = [0, 0] %}
+      {% set total_internet = [0, 0] %}
+      {% set total_tasix = [0, 0] %}
+      {% for s in sessions %}
+       {% set total[0] += s['octets_in'] %}
+       {% set total[1] += s['octets_out'] %}
+       {% if 'internet' in s['details'] %}
+        {% set internet = s['details']['internet'] %}
+       {% else %}
+        {% set internet = (0, 0) %}
+       {% end %}
+       {% if 'tasix' in s['details'] %}
+        {% set tasix = s['details']['tasix'] %}
+       {% else %}
+        {% set tasix = (0, 0) %}
+       {% end %}
+       {% set total_internet[0] += internet[0] %}
+       {% set total_internet[1] += internet[1] %}
+       {% set total_tasix[0] += tasix[0] %}
+       {% set total_tasix[1] += tasix[1] %}
+      <tr>
+	<td>{{s['started_at']}}</td>
+	<td>{{s['finished_at']}}</td>
+	<td>{{s['ip']}}</td>
+	<td>{{'{:.1f}'.format(s['octets_in']/1024/1024)}}</td>
+	<td>{{'{:.1f}'.format(internet[0]/1024/1024)}}</td>
+	<td>{{'{:.1f}'.format(tasix[0]/1024/1024)}}</td>
+	<td>{{'{:.1f}'.format(s['octets_out']/1024/1024)}}</td>
+	<td>{{'{:.1f}'.format(internet[1]/1024/1024)}}</td>
+	<td>{{'{:.1f}'.format(tasix[1]/1024/1024)}}</td>
+	<td>{{s['amount']}}</td>
+      </tr>
+      {% end %}
+      <tr>
+	<th colspan="3">Итого:</th>
+	<td>{{'{:.1f}'.format(total[0]/1024/1024)}}</td>
+	<td><strong>{{'{:.1f}'.format(total_internet[0]/1024/1024)}}</strong></td>
+	<td>{{'{:.1f}'.format(total_tasix[0]/1024/1024)}}</td>
+	<td>{{'{:.1f}'.format(total[1]/1024/1024)}}</td>
+	<td><strong>{{'{:.1f}'.format(total_internet[1]/1024/1024)}}</strong></td>
+	<td>{{'{:.1f}'.format(total_tasix[1]/1024/1024)}}</td>
+	<td>&nbsp;</td>
+      </tr>
+    </tbody>
+  </table>
+ {% end %}
+
+  <script>
+    $("#from").datepicker({ dateFormat: "yy-mm-dd" });
+    $("#till").datepicker({ dateFormat: "yy-mm-dd" });
+  </script>
+{% end %}

@@ -1,0 +1,38 @@
+{% extends "admin_contract_base.html" %}
+{% block admin_contract_section %}
+{% import utils %}
+
+{% for a in contract.accounts %}
+  {% if a.state != 'closed' %}
+    {% module RenderAccountInfo(admin, a, managers) %}
+  {% end %}
+{% end %}
+{% for a in contract.accounts %}
+  {% if a.state == 'closed' %}
+    {% module RenderAccountInfo(admin, a, managers) %}
+  {% end %}
+{% end %}
+
+{% module FlashMessage(handler.get_flash_message()) %}
+
+{% if contract.state=='open' and (admin.has_role('plan') or admin.has_role('super')) %}
+  <h4>Новый аккаунт</h4>
+  <form action="{{reverse_url('AdminContractAccounts', contract.id)}}" method="POST" autocomplete="off">
+    <label for="login">Логин</label>
+    <input type="text" name="login" id="login">
+    <label for="password">Пароль</label>
+    <input type="password" name="password" id="password">
+    <label for="password_confirm">Подтверждение пароля</label>
+    <input type="password" name="password_confirm" id="password_confirm">
+    <label for="plan">Тарифный план</label>
+    <select name="plan" id="plan">
+      {% for p in plans %}
+      <option value="{{p.id}}">{{p.name}} ({{p.code}})</option>
+      {% end %}
+    </select>
+    <br>
+    <button type="submit" class="btn btn-primary">Создать</button>
+  </form>
+{% end %}
+
+{% end %}

@@ -1,0 +1,33 @@
+{% extends "admin_base.html" %}
+{% block title %}Приостановленные аккаунты{% end %}
+{% block admin_body %}
+
+<h3>Приостановленные аккаунты</h3>
+
+<table class="table table-condensed">
+  <thead>
+    <tr><th>Номер контракта</th><th>Название</th><th>Аккаунт</th></tr>
+  </thead>
+  <tbody>
+    {% for c in contracts %}
+    {% set suspended = [a for a in c.accounts if a.state == 'suspended'] %}
+    <tr>
+      <td rowspan="{{len(suspended)}}"><a href="{{reverse_url('AdminContractOverview', c.id)}}">{{c.id}}</a></td>
+      <td rowspan="{{len(suspended)}}">
+        <a href="{{reverse_url('AdminContractOverview', c.id)}}">{{c.key_field.info_value}}</a><br>
+        {% for i, m in enumerate(managers[c.id]) %}
+            {{m['Type']['Name']}}:
+            {{m['Admin']['RealName']}}{% if i<len(managers[c.id])-1 %}, {% end %}
+        {% end %}
+      </td>
+      <td>{{suspended[0].login}}</td>
+    </tr>
+    {% for a in suspended[1:] %}
+    <tr>
+      <td>{{a.login}}</td>
+    </tr>
+    {% end %}
+    {% end %}
+  </tbody>
+</table>
+{% end %}

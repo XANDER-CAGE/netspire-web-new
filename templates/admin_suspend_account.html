@@ -1,0 +1,23 @@
+{% extends "admin_contract_base.html" %}
+{% block admin_contract_section %}
+
+<h4>Аккаунт {{account.login}} активен</h4>
+
+<p>Можно приостановить его бессрочно, если не задавать дату возобновления.
+  Если выбрать дату возобновления, то аккаунт будет включен в этот день
+  автоматически. В любом случае, на время действия приостановления аккаунта
+  не будут проводиться списания абонентской платы. При автоматическом
+  возобновлении никакое автоматическое списание абонентской платы не будет
+  выполнено.
+</p>
+<form action="{{reverse_url('AdminSuspendAccount', account.id)}}" method="POST">
+  <label for="resume_date">Дата возобновления</label>
+  <input type="text" name="resume_date" id="resume_date" value="{{handler.get_argument('resume_date', '')}}" autocomplete="off">
+  <br>
+  <button class="btn btn-warning">Приостановить</button>
+  <a href="{{reverse_url('AdminContractAccounts', account.contract.id)}}" class="btn">Отмена</a>
+</form>
+<script>
+  $("#resume_date").datepicker({ dateFormat: "yy-mm-dd" });
+</script>
+{% end %}

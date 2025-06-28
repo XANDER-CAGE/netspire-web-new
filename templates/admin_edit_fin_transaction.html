@@ -1,0 +1,24 @@
+{% extends "admin_contract_base.html" %}
+{% block admin_contract_section %}
+
+{% import utils %}
+
+<h4>Редактирование операции</h4>
+
+<p>
+  Дата: <strong>{{utils.datetime_utc_to_local(op.created_at)}}</strong><br>
+  Оператор: <strong>{{op.admin.real_name}}</strong><br>
+  Тип операции: <strong>{% if op.amount < 0 %}списание{% else %}начисление{% end %}</strong><br>
+  Сумма: <strong>{{ '%.2f' % op.amount_in_contract_currency}}</strong><br>
+  Комментарий: <strong>{{op.comment}}</strong>
+</p>
+
+<form action="" method="POST">
+  <label for="amount">Сумма:</label>
+  <input type="text" id="amount" name="amount" value="{{op.amount_in_contract_currency}}" class="input-block-level">
+  <label for="comment">Комментарий:</label>
+  <input type="text" id="comment" name="comment" value="{{op.comment}}" class="input-block-level">
+  <button class="btn btn-primary" type="submit">Сохранить</button>
+  <input type="hidden" name="back" value="{{back}}">
+</form>
+{% end %}

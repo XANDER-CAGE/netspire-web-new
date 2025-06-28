@@ -1,0 +1,52 @@
+{% extends "admin_base.html" %}
+{% block title %}Новый порт{% end %}
+{% block admin_body %}
+{% import utils %}
+<h3>Новый порт</h3>
+
+<form action="{{reverse_url('AdminNewPort')}}" method="POST">
+  <label for="port_type">Тип:</label>
+  {% set selected = int(handler.get_argument('port_type', '0')) %}
+  <select name="port_type" id="port_type">
+    {% for port_type in port_types %}
+    <option value="{{port_type.id}}" {% if selected == port_type.id %}selected{% end %}>{{port_type.name}}</option>
+    {% end %}
+  </select>
+
+  <label for="port_provider">Поставщик:</label>
+  {% set selected = int(handler.get_argument('port_provider', '0')) %}
+  <select name="port_provider" id="port_provider">
+    {% for provider in providers %}
+    <option value="{{provider.id}}" {% if selected == provider.id %}selected{% end %}>{{provider.name}}</option>
+    {% end %}
+  </select>
+
+  <label for="login">Логин:</label>
+  <input type="text" name="login" id="login" value="{{handler.get_argument('login', '')}}">
+
+  <label for="info">Информация:</label>
+  <input type="text" name="info" id="info" value="{{handler.get_argument('info', '')}}">
+
+  <label for="co">АТС:</label>
+  {% set selected = int(handler.get_argument('co', '0')) %}
+  <select name="co" id="co">
+    {% for area in areas %}
+      {% for co in area.COs %}
+    <option value="{{co.id}}" {% if selected == co.id %}selected{% end %}>{{area.name}}: {{co.name}}</option>
+      {% end %}
+    {% end %}
+  </select>
+
+  <label for="speed">Скорость:</label>
+  {% set selected = int(handler.get_argument('speed', '0')) %}
+  <select name="speed" id="speed">
+    {% for speed in speeds %}
+    <option value="{{speed.id}}" {% if selected == speed.id %}selected{% end %}>{{speed.input}}/{{speed.output}}</option>
+    {% end %}
+  </select>
+
+  <br>
+  <button type="submit" class="btn btn-primary" name="action" value="confirm">Создать</button>
+</form>
+
+{% end %}

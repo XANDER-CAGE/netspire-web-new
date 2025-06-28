@@ -1,0 +1,90 @@
+{% extends "admin_base.html" %}
+{% block title %}Администраторы системы{% end %}
+{% block admin_body %}
+<h3>Администраторы системы</h3>
+
+{% set action = handler.get_argument('action', '') %}
+{% if action == '' %}
+ <p><a href="?action=create">Создать нового администратора</a>.</p>
+
+ <table class="table">
+   <thead>
+     <tr>
+       <th>E-mail</th>
+       <th>Имя</th>
+       <th>Активен?</th>
+       <th>Дата создания</th>
+       <th>Роли</th>
+       <th>Действие</th>
+    </tr>
+   </thead>
+   <tbody>
+     {% for a in admins %}
+     <tr>
+       <td>{{a.email}}</td>
+       <td>{{a.real_name}}</td>
+       <td>{{a.active}}</td>
+       <td>{{a.created_at}}</td>
+       <td>{{a.roles}}</td>
+       <td><a href="?action=edit&id={{a.id}}"><i class="icon-edit"></i> править</a></td>
+     </tr>
+     {% end %}
+   </tbody>
+ </table>
+
+{% elif action == 'create' %}
+
+ {% if message is not None %}
+  {% set msgs = {1: 'Пароль должен содержать не менее 8 символов.', 2: 'Пароль и его подтверждение не совпадают.', 3: 'Не заполнен адрес электронной почты.', 4: 'Не заполнено настоящее имя.'} %}
+  <p class="text-error">{{ msgs[message] }}</p>
+ {% end %}
+ <form action="{{reverse_url('Admins')}}" method="POST">
+   <input type="hidden" name="action" value="create">
+   <fieldset>
+     <legend>Информация о новом администраторе</legend>
+     <label for="email">Адрес электронной почты</label>
+     <input type="text" name="email" id="email" placeholder="user@example.org" value="{{form.email}}">
+     <label for="real_name">Настоящее имя</label>
+     <input type="text" name="real_name" id="real_name" placeholder="Имя Фамилия" value="{{form.real_name}}">
+     <label for="password">Пароль</label>
+     <input type="password" name="password" id="password" autocomplete="off">
+     <label for="password_confirm">Подтверждение пароля</label>
+     <input type="password" name="password_confirm" id="password_confirm" autocomplete="off">
+     <br>
+     <button type="submit" class="btn btn-primary">Создать</button>
+     <a href="{{reverse_url('Admins')}}" class="btn">Отмена</a>
+   </fieldset>
+ </form>
+
+{% elif action == 'edit' %}
+
+ {% if message is not None %}
+  {% set msgs = {1: 'Пароль должен содержать не менее 8 символов.', 2: 'Пароль и его подтверждение не совпадают.', 3: 'Не заполнен адрес электронной почты.', 4: 'Не заполнено настоящее имя.'} %}
+  <p class="text-error">{{ msgs[message] }}</p>
+ {% end %}
+ <form action="{{reverse_url('Admins')}}" method="POST">
+   <input type="hidden" name="action" value="edit">
+   <input type="hidden" name="id" value="{{admin.id}}">
+   <fieldset>
+     <legend>Редактирование администратора</legend>
+     <label for="email">Адрес электронной почты</label>
+     <input type="text" name="email" id="email" placeholder="user@example.org" value="{{form.get('email', admin.email)}}">
+     <label for="real_name">Настоящее имя</label>
+     <input type="text" name="real_name" id="real_name" placeholder="Имя Фамилия" value="{{form.get('real_name', admin.real_name)}}">
+     <label for="password">Пароль</label>
+     <input type="password" name="password" id="password" autocomplete="off">
+     <label for="password_confirm">Подтверждение пароля</label>
+     <input type="password" name="password_confirm" id="password_confirm" autocomplete="off">
+     <br>
+     <label class="radio">
+       <input type="radio" name="active" value="1"{% if admin.active %}checked{% end %}>активен</label>
+     <label class="radio">
+       <input type="radio" name="active" value="0"{% if not admin.active %}checked{% end %}>неактивен</label>
+     <button type="submit" class="btn btn-primary">{{ 'Создать' if action == 'create' else 'Сохранить' }}</button>
+     <a href="{{reverse_url('Admins')}}" class="btn">Отмена</a>
+   </fieldset>
+ </form>
+
+{% end %}
+
+{% end %}

@@ -1,0 +1,15 @@
+{% extends "admin_base.html" %}
+{% block title %}Типы контрактов{% end %}
+{% block admin_body %}
+
+<h3>Подтвердите удаление</h3>
+
+<p>Вы собираетесь удалить тип контракта <i>{{kind.kind_name}} ({{kind.description}})</i>. Вы уверены?</p>
+
+<form action="" method="POST">
+  <input type="hidden" name="remove" value="{{kind.id}}">
+  <button type="submit" class="btn btn-danger">Удалить</button>
+  <a href="{{reverse_url('SettingsKinds')}}" class="btn">Отмена</a>
+</form>
+
+{% end %}

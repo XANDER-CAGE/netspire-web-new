@@ -1,0 +1,48 @@
+{% extends "admin_contract_base.html" %}
+{% block admin_contract_section %}
+
+<p>Созданo {{invoice["created_at"]}}. Курс доллара: <strong>{{invoice["rate1to2"]}}</strong>.</p>
+
+<h4>Счёт-фактура {{invoice["invoice_id"]}} за {{month_names[invoice["month"]-1]}} {{invoice["year"]}}</h4>
+
+<table class="table">
+  {% if "monthly_fee" in invoice["expenses"] %}
+  <tr>
+    <td>Абонентская плата:</td><td>{{invoice["expenses"]["monthly_fee"]}}</td>
+    {% if contract.currency_id == 1 %}<td>{{invoice["expenses"]["monthly_fee_sum"]}} сум</td>{% end %}
+  </tr>
+  {% end %}
+  {% if "overlimit" in invoice["expenses"] %}
+  <tr>
+    <td>Перелимит:</td><td>{{invoice["expenses"]["overlimit"]}}</td>
+    {% if contract.currency_id == 1 %}<td>{{invoice["expenses"]["overlimit_sum"]}} сум</td>{% end %}
+  </tr>
+  {% end %}
+  {% if "other" in invoice["expenses"] %}
+  <tr>
+    <td>Прочее:</td><td>{{invoice["expenses"]["other"]}}</td>
+    {% if contract.currency_id == 1 %}<td>{{invoice["expenses"]["other_sum"]}} сум</td>{% end %}
+  </tr>
+  {% end %}
+  <tr>
+    <td>ИТОГО:</td><td>{{invoice["total_expenses"]}}</td>
+    {% if contract.currency_id == 1 %}<td>{{invoice["total_expenses_sum"]}} сум</td>{% end %}
+  </tr>
+</table>
+
+<h4>Счёт на оплату {{invoice["invoice_id"]}} за {{month_names[invoice["month"]-1]}} {{invoice["year"]}}</h4>
+
+<table class="table">
+  <tr>
+    <td>Баланс на {{next1st}}:</td><td>{{invoice["balance1st"]}}</td>
+  </tr>
+  <tr>
+    <td>Предоплата:</td><td>{{invoice["monthly_fees"]}}</td>
+  </tr>
+  <tr>
+    <td><strong>Итого к оплате:</strong></td><td>{{invoice["due_payment"]}}</td>
+  </tr>
+</table>
+
+Скачать файл: <a href="{{reverse_url('AdminODSInvoice', contract.id, invoice['year'], invoice['month'], ods_name)}}">{{ods_name}}</a>
+{% end %}

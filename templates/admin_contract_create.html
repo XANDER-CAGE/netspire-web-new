@@ -1,0 +1,35 @@
+{% extends "admin_base.html" %}
+{% block title %}Новый контракт{% end %}
+{% block admin_body %}
+
+ {% if kind is None %}
+  <h3>Новый контракт</h3>
+  <p>Выберите тип контракта:</p>
+
+  <ul>
+    {% for k in kinds %}
+    <li><a href="{{k.id}}">{{k.kind_name}}</a></li>
+    {% end %}
+  </ul>
+ {% else %}
+  <h3>Новый контракт - {{kind.kind_name}}</h3>
+
+  <form action="" method="POST">
+    <label for="currency">Валюта контракта</label>
+    <select name="currency" id="currency">
+      {% for c in currencies %}
+      <option value="{{c.id}}">{{c.name}}: {{c.description}}</option>
+      {% end %}
+    </select>
+    <fieldset>
+      <legend>Реквизиты</legend>
+      {% for item in kind.fields %}
+      <label for="item{{item.id}}">{{item.field_name}}</label>
+      <input type="text" name="item{{item.id}}" id="item{{item.id}}" title="{{item.field_description}}">
+      {% end %}
+    </fieldset>
+    <button type="submit" class="btn btn-primary">Создать</button>
+    <a href="{{reverse_url('AdminHome')}}" class="btn">Отмена</a>
+  </form>
+ {% end %}
+{% end %}

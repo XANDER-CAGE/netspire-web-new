@@ -1,0 +1,9 @@
+{% extends "admin_contract_base.html" %}
+{% block admin_contract_section %}
+
+  <form action="{{reverse_url('AdminContractInfoEdit', contract.id)}}" method="POST" class="form-horizontal">
+    {% module ContractInfoEditor(contract) %}
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+    <a href="{{reverse_url('AdminContractInfo', contract.id)}}" class="btn">Отмена</a>
+  </form>
+{% end %}

@@ -1,0 +1,69 @@
+{% extends "admin_base.html" %}
+{% block title %}Отчёт по списаниям{% end %}
+{% block admin_body %}
+{% import utils %}
+
+<h3>Отчёт по списаниям</h3>
+
+<form action="" method="GET">
+  <label for="k">Тип контракта:</label>
+    {% set selected = int(handler.get_argument('k', '-1')) %}
+    <select name="k" id="kind">
+    <option value="-1"{% if selected == -1 %} selected{% end %}>любой</option>
+    {% for k in kinds %}
+    <option value="{{k.id}}"{% if selected == k.id %} selected{% end %}>{{k.kind_name}}</option>
+    {% end %}
+    </select>
+  <label for="from_date">От даты:</label>
+  <input type="text" name="from_date" id="from_date" value="{{handler.get_argument('from_date', '')}}" autocomplete="off">
+  <label for="to_date">До даты:</label>
+  <input type="text" name="to_date" id="to_date" value="{{handler.get_argument('to_date', '')}}" autocomplete="off">
+  <br>
+  <button type="submit" class="btn btn-primary">Показать</button>
+</form>
+
+{% if result is not None %}
+<table class="table">
+  <thead>
+    <tr>
+      <th>Номер контракта</th>
+      <th>Абонентская</th>
+      <th>Подключение</th>
+      <th>Перелимит</th>
+      <th>Непонятно</th>
+      <th>&nbsp;</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for cid in sorted(result) %}
+    <tr>
+      <td><a href="{{reverse_url('AdminContractOverview', cid)}}">{{cid}}: {{names[cid]}}</a></td>
+      <td>{{'{:.2f}'.format(result[cid]['abon'])}}</td>
+      <td>{{'{:.2f}'.format(result[cid]['connect'])}}</td>
+      <td>{{'{:.2f}'.format(result[cid]['overlimit'])}}</td>
+      <td>{{'{:.2f}'.format(result[cid]['unknown'])}}</td>
+      <td>
+        {% if details[cid]['link'] %}
+        <a href="{{details[cid]['link']}}">посмотреть</a>
+        ({{', '.join(map(str, unknowns[cid]))}})
+        {% end %}
+      </td>
+    </tr>
+    {% end %}
+    <tr>
+      <td><strong>Итого:</strong></td>
+      <td>{{'{:.2f}'.format(totals['abon'])}}</td>
+      <td>{{'{:.2f}'.format(totals['connect'])}}</td>
+      <td>{{'{:.2f}'.format(totals['overlimit'])}}</td>
+      <td>{{'{:.2f}'.format(totals['unknown'])}}</td>
+      <td>&nbsp;</td>
+    </tr>
+  </tbody>
+</table>
+{% end %}
+
+<script>
+        $("#from_date").datepicker({ dateFormat: "yy-mm-dd" });
+        $("#to_date").datepicker({ dateFormat: "yy-mm-dd" });
+</script>
+{% end %}

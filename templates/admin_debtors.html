@@ -1,0 +1,55 @@
+{% extends "admin_base.html" %}
+{% block title %}Должники{% end %}
+{% block admin_body %}
+{% import utils %}
+
+<h2>Должники</h2>
+
+<form action="" method="GET" class="form-inline">
+  <label>Тип контракта:
+    {% set selected = int(handler.get_argument('k', '-1')) %}
+    <select name="k" id="kind">
+      <option value="-1" {% if selected==-1 %} selected{% end %}>любой</option>
+      {% for k in kinds %}
+      <option value="{{k.id}}" {% if selected==k.id %} selected{% end %}>{{k.kind_name}}</option>
+      {% end %}
+    </select>
+  </label>
+  <label>Состояние контракта:
+    {% set state = handler.get_argument('state', 'any') %}
+    <select name="state">
+      <option value="any" {% if state=='any' %} selected{% end %}>любой</option>
+      <option value="open" {% if state=='open' %} selected{% end %}>активный</option>
+      <option value="closed" {% if state=='closed' %} selected{% end %}>расторженный</option>
+    </select>
+  </label>
+  <button type="submit" name="action" value="search" class="btn btn-primary">Поиск</button>
+</form>
+
+Всего {{len(debtors)}}
+
+<table class="table table-condensed">
+  <thead>
+    <tr>
+      <th>Номер</th>
+      <th>Тип</th>
+      <th>Название</th>
+      <th>Баланс</th>
+      <th>Валюта</th>
+      <th>Сумма АП</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for d in debtors %}
+    <tr {% if abs(d.balance) >  2*monthly_fees[d.id] %} class="error"{% elif abs(d.balance) > monthly_fees[d.id] %} class="warning"{% end %}>
+      <td>{{d.id}}</td>
+      <td>{{d.kind.kind_name}}</td>
+      <td><a href="{{reverse_url('AdminContractOverview', d.id)}}">{{d.key_field.info_value}}</a></td>
+      <td>{{utils.human_money(d.balance)}}</td>
+      <td>{{d.currency.short_name}}</td>
+      <td>{{utils.human_money(monthly_fees[d.id])}}</td>
+    </tr>
+    {% end %}
+  </tbody>
+</table>
+{% end %}

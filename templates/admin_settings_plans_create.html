@@ -1,0 +1,14 @@
+{% extends "admin_base.html" %}
+{% block title %}Новый тарифный план{% end %}
+{% block admin_body %}
+{% import utils %}
+<h3>Новый тарифный план</h3>
+
+<form action="{{reverse_url('AdminSettingsPlansCreate')}}" method="POST" autocomplete="off">
+  {% module PlanEditor(currencies, plan, settings) %}
+  <br>
+  <button type="submit" class="btn btn-primary">Создать</button>
+  <a href="{{reverse_url('AdminSettingsPlans')}}" class="btn">Отмена</a>
+</form>
+
+{% end %}

@@ -1,0 +1,45 @@
+{% extends "admin_contract_base.html" %}
+{% block admin_contract_section %}
+
+{% import utils %}
+
+<h4>Кредит для {{account.login}}</h4>
+
+{% module FlashMessage(handler.get_flash_message()) %}
+{% set sp = account.service_parameters[0] if len(account.service_parameters) else None %}
+{% set currency = contract.currency.short_name %}
+<form action="{{reverse_url('AdminChangeCredit', account.id)}}" method="POST">
+  {% if sp is None %}
+  <label>Текущий кредит: 0.00 {{currency}}</label>
+  {% else %}
+  <label>Текущий кредит: {{'{:.2f}'.format(sp.credit)}} {{currency}}{% if sp.credit > 0 %} до {{sp.credit_deadline}}{% end %}</label>
+  {% end %}
+  <label>Текущий баланс контракта: {{'{:.2f}'.format(contract.balance)}} {{currency}}</label>
+  <label for="credit">Новый кредит:</label>
+  <div class="input-append">
+    <input type="text" name="credit" id="credit" value="{{handler.get_argument('credit', 0)}}" class="input-mini">
+    <span class="add-on">{{currency}}</span>
+  </div>
+  <label for="deadline">Срок действия кредита:</label>
+  {% if admin.has_role('credit2') %}
+  <input type="text" name="deadline" id="deadline">
+  {% else %}
+  <select name="deadline">
+    <option value="1">1 день</option>
+    <option value="2">2 дня</option>
+    <option value="3">3 дня</option>
+    <option value="4">4 дня</option>
+    <option value="5">5 дней</option>
+    <option value="6">6 дней</option>
+    <option value="7">7 дней</option>
+  </select>
+  {% end %}
+  <br>
+  <button type="submit" name="action" value="set" class="btn btn-primary">Применить</button>
+  <button type="submit" name="action" value="clear" class="btn btn-warning">Обнулить кредит</button>
+  <a href="{{reverse_url('AdminContractAccounts', account.contract.id)}}" class="btn">Отмена</a>
+</form>
+<script>
+  $("input#deadline").datepicker({ dateFormat: "yy-mm-dd" });
+</script>
+{% end %}

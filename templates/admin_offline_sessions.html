@@ -1,0 +1,452 @@
+{% extends "admin_base.html" %}
+{% block title %}Завершённые сессии{% end %}
+
+{% block head_extra %}
+<style>
+.session-filters {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    border: 1px solid #e9ecef;
+}
+
+.filter-row {
+    display: flex;
+    gap: 15px;
+    align-items: end;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 150px;
+}
+
+.filter-group label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    font-size: 12px;
+    color: #666;
+}
+
+.stats-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    min-width: 120px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.stat-card.traffic {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.stat-card.duration {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.stat-card.amount {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.stat-number {
+    font-size: 24px;
+    font-weight: bold;
+    display: block;
+}
+
+.stat-label {
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+.session-row {
+    transition: background-color 0.2s;
+}
+
+.session-row:hover {
+    background-color: #f8f9fa !important;
+}
+
+.duration-badge {
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.duration-short {
+    background: #e7f3ff;
+    color: #0066cc;
+}
+
+.duration-medium {
+    background: #fff3e0;
+    color: #e65100;
+}
+
+.duration-long {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.traffic-bar {
+    height: 4px;
+    background: #e9ecef;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 2px;
+}
+
+.traffic-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #28a745, #ffc107, #dc3545);
+    transition: width 0.3s;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 5px;
+}
+
+.btn-xs {
+    padding: 2px 8px;
+    font-size: 11px;
+    border-radius: 3px;
+}
+
+.finished-badge {
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+    background: #d4edda;
+    color: #155724;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.pagination a, .pagination span {
+    display: inline-block;
+    padding: 8px 12px;
+    margin: 0 4px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-decoration: none;
+    color: #333;
+}
+
+.pagination a:hover {
+    background-color: #f5f5f5;
+}
+
+.pagination .current {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+@media (max-width: 768px) {
+    .filter-row {
+        flex-direction: column;
+    }
+    
+    .stats-row {
+        justify-content: center;
+    }
+    
+    .table-responsive {
+        font-size: 12px;
+    }
+}
+</style>
+{% end %}
+
+{% block admin_body %}
+ {% import utils %}
+ {% import datetime %}
+ 
+ <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Завершённые сессии 
+      <span class="badge badge-secondary">{{pagination.total}}</span>
+    </h3>
+    <div>
+      <button class="btn btn-sm btn-info" onclick="toggleFilters()">
+        <i class="icon-filter"></i> Фильтры
+      </button>
+      <button class="btn btn-sm btn-success" onclick="refreshPage()">
+        <i class="icon-refresh"></i> Обновить
+      </button>
+      <button class="btn btn-sm btn-warning" onclick="exportData()">
+        <i class="icon-download"></i> Экспорт
+      </button>
+    </div>
+  </div>
+
+  <!-- Статистика -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <span class="stat-number">{{pagination.total}}</span>
+      <span class="stat-label">Всего сессий</span>
+    </div>
+    <div class="stat-card traffic">
+      <span class="stat-number">{{'{:.1f}'.format(stats.total_traffic / 1073741824)}}</span>
+      <span class="stat-label">ГБ трафика</span>
+    </div>
+    <div class="stat-card duration">
+      <span class="stat-number">{{'{:.1f}'.format(stats.avg_duration)}}</span>
+      <span class="stat-label">Ср. время (ч)</span>
+    </div>
+    <div class="stat-card amount">
+      <span class="stat-number">{{'{:.2f}'.format(stats.total_amount)}}</span>
+      <span class="stat-label">Общая сумма</span>
+    </div>
+  </div>
+
+  <!-- Фильтры -->
+  <div class="session-filters" id="sessionFilters" style="display: none;">
+    <form method="GET" class="filter-row">
+      <div class="filter-group">
+        <label>Поиск:</label>
+        <input type="text" class="form-control form-control-sm" name="search" value="{{stats.search_query}}" placeholder="IP, логин, контракт...">
+      </div>
+      <div class="filter-group">
+        <label>Период (дней):</label>
+        <select class="form-control form-control-sm" name="days">
+          <option value="1" {{'selected' if stats.days_back == 1 else ''}}>Сегодня</option>
+          <option value="7" {{'selected' if stats.days_back == 7 else ''}}>7 дней</option>
+          <option value="30" {{'selected' if stats.days_back == 30 else ''}}>30 дней</option>
+          <option value="90" {{'selected' if stats.days_back == 90 else ''}}>90 дней</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Записей на странице:</label>
+        <select class="form-control form-control-sm" name="per_page">
+          <option value="25" {{'selected' if pagination.per_page == 25 else ''}}>25</option>
+          <option value="50" {{'selected' if pagination.per_page == 50 else ''}}>50</option>
+          <option value="100" {{'selected' if pagination.per_page == 100 else ''}}>100</option>
+          <option value="200" {{'selected' if pagination.per_page == 200 else ''}}>200</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>&nbsp;</label>
+        <button type="submit" class="btn btn-sm btn-primary">Применить</button>
+      </div>
+    </form>
+  </div>
+
+  {% module FlashMessage(handler.get_flash_message()) %}
+  
+  <div class="table-responsive">
+    <table class="table table-bordered table-condensed table-striped" id="sessionsTable">
+      <thead class="thead-light">
+        <tr>
+          <th><a href="?sort=login&order={{'asc' if sort_by == 'login' and sort_order == 'desc' else 'desc'}}">Логин <i class="icon-sort"></i></a></th>
+          <th>Название</th>
+          <th><a href="?sort=duration&order={{'asc' if sort_by == 'duration' and sort_order == 'desc' else 'desc'}}">Длительность <i class="icon-sort"></i></a></th>
+          <th><a href="?sort=ip&order={{'asc' if sort_by == 'ip' and sort_order == 'desc' else 'desc'}}">IP-адрес <i class="icon-sort"></i></a></th>
+          <th><a href="?sort=traffic&order={{'asc' if sort_by == 'traffic' and sort_order == 'desc' else 'desc'}}">Трафик <i class="icon-sort"></i></a></th>
+          <th>Скорость</th>
+          <th>Сумма</th>
+          <th><a href="?sort=finished_at&order={{'asc' if sort_by == 'finished_at' and sort_order == 'desc' else 'desc'}}">Завершено <i class="icon-sort"></i></a></th>
+          <th>Действия</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s, a, c in offline %}
+         {% set start_time = utils.datetime_utc_to_local(s.started_at) %}
+         {% set end_time = utils.datetime_utc_to_local(s.finished_at) %}
+         {% set duration = s.finished_at - s.started_at %}
+         {% set duration_hours = duration.total_seconds() / 3600 %}
+         {% set total_traffic_mb = (s.octets_in + s.octets_out) / 1048576 %}
+         {% set duration_class = 'short' if duration_hours < 1 else ('medium' if duration_hours < 6 else 'long') %}
+        <tr class="session-row" 
+            data-login="{{a.login.lower()}}" 
+            data-ip="{{s.ip}}" 
+            data-duration="{{duration_hours}}"
+            data-traffic="{{total_traffic_mb}}">
+          <td>
+            <a href="{{reverse_url('AdminContractOverview', c.id)}}" class="text-decoration-none">
+              <strong>{{a.login}}</strong>
+            </a>
+            {% if a.active %}
+              <span class="badge badge-success badge-sm">Активен</span>
+            {% else %}
+              <span class="badge badge-warning badge-sm">Неактивен</span>
+            {% end %}
+          </td>
+          <td>
+            <div title="Контракт #{{c.id}}">{{c.key_field.info_value}}</div>
+            <small class="text-muted">Баланс: {{'{:.2f}'.format(c.balance)}} {{c.currency.name}}</small>
+          </td>
+          <td>
+            <span class="duration-badge duration-{{duration_class}}" title="{{start_time}} - {{end_time}}">
+              {{utils.interval_to_string(duration)}}
+            </span>
+            <div class="small text-muted">{{start_time.strftime('%d.%m %H:%M')}}</div>
+          </td>
+          <td>
+            <code>{{s.ip}}</code>
+          </td>
+          <td>
+            <div class="text-right">
+              <div>↓ <strong>{{'{:.1f}'.format(s.octets_in / 1048576)}}</strong> МБ</div>
+              <div>↑ <strong>{{'{:.1f}'.format(s.octets_out / 1048576)}}</strong> МБ</div>
+              <div class="traffic-bar">
+                <div class="traffic-fill" style="width: 50%"></div>
+              </div>
+            </div>
+          </td>
+          <td>
+            {% if duration_hours > 0 %}
+              <div class="text-muted small">
+                ↓ {{'{:.1f}'.format(s.octets_in / 1048576 / duration_hours)}} МБ/ч<br>
+                ↑ {{'{:.1f}'.format(s.octets_out / 1048576 / duration_hours)}} МБ/ч
+              </div>
+            {% else %}
+              <span class="text-muted">-</span>
+            {% end %}
+          </td>
+          <td class="text-right">
+            <strong>{{'{:.2f}'.format(s.amount)}}</strong> {{c.currency.name}}
+          </td>
+          <td>
+            <span class="finished-badge" title="{{end_time}}">
+              {{end_time.strftime('%d.%m %H:%M')}}
+            </span>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <a href="{{reverse_url('AdminContractSessions', c.id)}}?session_id={{s.id}}" 
+                 class="btn btn-info btn-xs" title="Детали сессии">
+                <i class="icon-list"></i>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% end %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Пагинация -->
+  {% if pagination.total_pages > 1 %}
+  <div class="pagination">
+    {% if pagination.has_prev %}
+      <a href="?page={{pagination.prev_page}}&per_page={{pagination.per_page}}&search={{stats.search_query}}&days={{stats.days_back}}&sort={{sort_by}}&order={{sort_order}}">&laquo; Предыдущая</a>
+    {% end %}
+    
+    {% for page_num in range(max(1, pagination.page - 2), min(pagination.total_pages + 1, pagination.page + 3)) %}
+      {% if page_num == pagination.page %}
+        <span class="current">{{page_num}}</span>
+      {% else %}
+        <a href="?page={{page_num}}&per_page={{pagination.per_page}}&search={{stats.search_query}}&days={{stats.days_back}}&sort={{sort_by}}&order={{sort_order}}">{{page_num}}</a>
+      {% end %}
+    {% end %}
+    
+    {% if pagination.has_next %}
+      <a href="?page={{pagination.next_page}}&per_page={{pagination.per_page}}&search={{stats.search_query}}&days={{stats.days_back}}&sort={{sort_by}}&order={{sort_order}}">Следующая &raquo;</a>
+    {% end %}
+  </div>
+  
+  <div class="text-center text-muted small mt-2">
+    Показано {{len(offline)}} из {{pagination.total}} сессий
+  </div>
+  {% end %}
+
+  <script>
+  function toggleFilters() {
+    const filters = document.getElementById('sessionFilters');
+    filters.style.display = filters.style.display === 'none' ? 'block' : 'none';
+  }
+  
+  function refreshPage() {
+    location.reload();
+  }
+  
+  function exportData() {
+    const rows = Array.from(document.querySelectorAll('#sessionsTable tbody tr'));
+    let csv = 'Логин,IP,Начало,Завершено,Длительность,Трафик Вх МБ,Трафик Исх МБ,Сумма\n';
+    
+    rows.forEach(row => {
+      const cells = row.querySelectorAll('td');
+      const login = cells[0].textContent.trim();
+      const ip = cells[3].textContent.trim();
+      const duration = cells[2].textContent.trim();
+      const trafficIn = cells[4].querySelector('div:nth-child(1)').textContent.match(/[\d.]+/)?.[0] || '0';
+      const trafficOut = cells[4].querySelector('div:nth-child(2)').textContent.match(/[\d.]+/)?.[0] || '0';
+      const amount = cells[6].textContent.trim();
+      const finished = cells[7].textContent.trim();
+      
+      csv += `"${login}","${ip}","","${finished}","${duration}","${trafficIn}","${trafficOut}","${amount}"\n`;
+    });
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'offline_sessions_' + new Date().toISOString().split('T')[0] + '.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+  }
+  
+  function sortTable(columnIndex) {
+    const table = document.getElementById('sessionsTable');
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    
+    rows.sort((a, b) => {
+      const aText = a.cells[columnIndex].textContent.trim();
+      const bText = b.cells[columnIndex].textContent.trim();
+      
+      // Попытка числовой сортировки
+      const aNum = parseFloat(aText.replace(/[^\d.-]/g, ''));
+      const bNum = parseFloat(bText.replace(/[^\d.-]/g, ''));
+      
+      if (!isNaN(aNum) && !isNaN(bNum)) {
+        return aNum - bNum;
+      }
+      
+      return aText.localeCompare(bText);
+    });
+    
+    rows.forEach(row => tbody.appendChild(row));
+  }
+  
+  // Горячие клавиши
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.metaKey) {
+      switch(e.code) {
+        case 'KeyR':
+          e.preventDefault();
+          refreshPage();
+          break;
+        case 'KeyF':
+          e.preventDefault();
+          toggleFilters();
+          break;
+        case 'KeyE':
+          e.preventDefault();
+          exportData();
+          break;
+      }
+    }
+  });
+  </script>
+
+{% end %} 

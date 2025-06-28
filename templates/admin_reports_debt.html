@@ -1,0 +1,87 @@
+{% extends "admin_base.html" %}
+{% block title %}Долги по дням{% end %}
+{% block admin_body %}
+  <h3>Долги клиентов по дням</h3>
+
+  {% set month_names = 'январь февраль март апрель май июнь июль август сентябрь октябрь ноябрь декабрь'.split() %}
+  <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+  <script type="text/javascript">
+    google.load('visualization', '1.1', {packages: ['line']});
+    google.setOnLoadCallback(drawChart);
+
+    function drawChart() {
+
+      var data = new google.visualization.DataTable();
+      data.addColumn('number', 'День');
+      data.addColumn('number', 'Сумма');
+
+      data.addRows({{by_day_graph}});
+
+      var options = {
+        chart: {
+          title: 'Сумма долгов абонентов по дням',
+          subtitle: 'за {{month_names[month-1]}} {{year}}'
+        },
+        width: 900,
+        height: 500
+      };
+
+      var chart = new google.charts.Line(document.getElementById('linechart_material'));
+
+      chart.draw(data, options);
+    }
+  </script>
+
+  <form action="" method="GET" class="form-inline">
+    <select name="year">
+      {% for y in range(2013, today.year+1) %}
+      <option{% if y == year %} selected{% end %}>{{y}}</option>
+      {% end %}
+    </select>
+    <select name="month">
+      {% for m in range(1, 13) %}
+      <option{% if m == month %} selected{% end %} value="{{m}}">{{month_names[m-1]}}</option>
+      {% end %}
+    </select>
+    <select name="currency">
+      {% for c in currencies %}
+      <option{% if c.id == int(handler.get_argument('currency', str(currencies[0].id))) %} selected{% end %} value="{{c.id}}">{{c.name}}</option>
+      {% end %}
+    </select>
+    <button type="submit" class="btn">Показать</button>
+  </form>
+
+  <div id="linechart_material"></div>
+
+  <table class="table table-bordered table-condensed table-striped">
+    <thead>
+      <tr>
+	<th>День</th>
+	<th>Сумма</th>
+	<th>День</th>
+	<th>Сумма</th>
+	<th>День</th>
+	<th>Сумма</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% set day_count = len(by_day) %}
+      {% set per_column = day_count / 3 if day_count % 3 == 0 else day_count / 3 + 1 %}
+      {% for i in range(per_column) %}
+      <tr>
+	<td>{{by_day[i][0].date()}}</td>
+	<td>{{int(by_day[i][1])}}</td>
+	<td>{{by_day[i+per_column][0].date()}}</td>
+	<td>{{int(by_day[i+per_column][1])}}</td>
+	{% if i+2*per_column < day_count %}
+	<td>{{by_day[i+2*per_column][0].date()}}</td>
+	<td>{{int(by_day[i+2*per_column][1])}}</td>
+	{% else %}
+	<td></td><td></td>
+	{% end %}
+      </tr>
+      {% end %}
+    </tbody>
+  </table>
+
+{% end %}

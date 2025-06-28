@@ -1,0 +1,40 @@
+{% extends "admin_base.html" %}
+{% block title %}Администраторы{% end %}
+{% block admin_body %}
+
+<h3>Поиск сессий</h3>
+
+<form action="{{reverse_url('AdminFindSession')}}" method="GET">
+  <label for="ip">IP-адрес:</label>
+  <input type="text" name="ip" id="ip" value="{{handler.get_argument('ip', '')}}">
+  <label for="time">Время:</label>
+  <input type="text" name="time" id="time" value="{{handler.get_argument('time', '')}}"><br>
+  Формат дат следующий:<br>
+  <b>2015-01-23 21:34:45</b> - местное время<br>
+  <b>2015-01-23T16:34:45Z</b> - UTC<br>
+  <button type="submit" class="btn">Искать</button>
+</form>
+
+{% if result is not None %}
+<p>Поиск по IP-адресу: {{result['ip']}}, локальное время: {{result['time']}}</p>
+
+  {% if result['session'] is None %}
+<p>Ничего не найдено.</p>
+  {% else %}
+<p>Логин {{result['account']}}. Сессия началась: {{result['session']['started_at']}},
+{% if result['session']['finished_at'] is None %}продолжается.{% else %}завершилась: {{result['session']['finished_at']}}.{% end %}</p>
+
+<table class="table">
+  <tbody>
+    {% for row in result['contract'] %}
+    <tr>
+      <th>{{row[0]}}</th><td>{{row[1]}}</td>
+    </tr>
+    {% end %}
+  </tbody>
+</table>
+  {% end %}
+
+{% end %}
+
+{% end %}

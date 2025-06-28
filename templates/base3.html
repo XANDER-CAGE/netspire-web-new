@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{% block title %}Default title{% end %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    <link href="{{static_url('bs3/css/bootstrap.min.css')}}" rel="stylesheet" media="screen">
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="../../assets/js/html5shiv.js"></script>
+      <script src="../../assets/js/respond.min.js"></script>
+    <![endif]-->
+    <!-- jQuery -->
+    <script src="{{static_url('jquery-1.10.2.min.js')}}"></script>
+    <!-- jQuery UI -->
+    <script src="{{static_url('jquery-ui-1.10.3/ui/minified/jquery-ui.min.js')}}"></script>
+    <!-- jQuery UI CSS -->
+    <link href="{{static_url('jquery-ui-1.10.3/themes/base/minified/jquery-ui.min.css')}}" rel="stylesheet" media="screen">
+  </head>
+  <body>
+{% block body %}
+{% end %}
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="{{static_url('bs3/js/bootstrap.min.js')}}"></script>
+  </body>
+</html>

@@ -1,0 +1,30 @@
+{% extends "admin_base.html" %}
+{% block title %}Тарифные планы{% end %}
+{% block admin_body %}
+{% import utils %}
+<h3>Тарифные планы</h3>
+
+<a href="{{reverse_url('AdminSettingsPlansCreate')}}" class="btn">Создать новый</a>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Кодовое имя</th>
+      <th>Название</th>
+      <th>Время создания</th>
+      <th>Время последнего изменения</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for p in plans %}
+    <tr>
+      <td><a href="{{reverse_url('AdminSettingsPlansEdit', p.id)}}">{{p.code}}</a></td>
+      <td>{{p.name}}</td>
+      <td>{{utils.datetime_utc_to_local(p.created_at)}}</td>
+      <td>{{utils.datetime_utc_to_local(p.updated_at)}}</td>
+    </tr>
+    {% end %}
+  </tbody>
+</table>
+
+{% end %}

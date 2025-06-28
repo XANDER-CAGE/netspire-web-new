@@ -1,0 +1,27 @@
+{% extends "admin_contract_base.html" %}
+{% block admin_contract_section %}
+
+{% set blocking_accounts = [] %}
+{% for a in contract.accounts %}
+  {% if a.state != 'closed' %}
+    {% set blocking_accounts.append(a) %}
+  {% end %}
+{% end %}
+
+{% if len(blocking_accounts) %}
+<p>Прежде чем расторгнуть контракт, необходимо закрыть следующие аккаунты:</p>
+<ul>
+  {% for a in blocking_accounts %}
+  <li>{{a.login}}
+    <a href="{{reverse_url('AdminCloseAccount', a.id)}}?close_contract=1" class="btn btn-mini btn-danger">Закрыть</a></li>
+  {% end %}
+</ul>
+{% else %}
+<p>Вы собираетесь расторгнуть данный контракт.</p>
+<form action="{{reverse_url('AdminCloseContract', contract.id)}}" method="POST">
+  <button type="submit" name="when" value="now" class="btn btn-danger">Расторгнуть</button>
+  <a href="{{reverse_url('AdminContractOverview', contract.id)}}" class="btn">Отмена</a>
+</form>
+{% end %}
+
+{% end %}

@@ -1,0 +1,10 @@
+{% extends "admin_contract_base.html" %}
+{% block admin_contract_section %}
+
+<h4>Аккаунт {{account.login}} приостановлен</h4>
+
+<form action="{{reverse_url('AdminResumeAccount', account.id)}}" method="POST">
+  <button class="btn btn-success">Возобновить</button>
+  <a href="{{reverse_url('AdminContractAccounts', account.contract.id)}}" class="btn">Отмена</a>
+</form>
+{% end %}

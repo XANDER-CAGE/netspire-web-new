@@ -1,0 +1,12 @@
+{% for item in contract.kind.fields %}
+  <div class="control-group">
+    <label for="ui_info_item_{{item.id}}" class="control-label">{{item.field_name}}</label>
+    <div class="controls">
+      <input type="text"
+	     name="ui_info_item_{{item.id}}"
+	     id="ui_info_item_{{item.id}}"
+	     title="{{item.field_description}}"
+	     value="{{infos.get(item.id, '')}}">
+    </div>
+  </div>
+{% end %}

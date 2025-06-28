@@ -1,0 +1,74 @@
+{% extends "admin_contract_base.html" %}
+{% block admin_contract_section %}
+{% import utils %}
+
+<table class="table table-condensed">
+  <tr>
+    <th>Дата заключения договора</th>
+    <td>{{utils.datetime_utc_to_local(contract.created_at)}}</td>
+  </tr>
+  {% if contract.state == 'closed' %}
+  <tr>
+    <th>Дата расторжения договора</th>
+    <td><strong class="text-error">{{utils.datetime_utc_to_local(contract.closed_at)}}</strong></td>
+  </tr>
+  {% end %}
+  {% if not admin.has_role('bb') %}
+  <tr>
+    <th>Баланс</th>
+    <td>{{utils.human_money(contract.balance)}} {{contract.currency.short_name}}</td>
+  </tr>
+  <tr>
+    <th>Баланс на 1-е число</th>
+    <td>{{utils.human_money(balance1)}} {{contract.currency.short_name}}</td>
+  </tr>
+  {% end %}
+  <tr>
+    <th>Аккаунты</th>
+    <td>{{', '.join(map(lambda x: x.login, filter(lambda x: x.state=='open', contract.accounts)))}}</td>
+  </tr>
+
+  {% if managers and not admin.has_role('bb') %}
+  {% for m in managers %}
+  <tr>
+    <th>{{m['Type']['Name']}}:</th>
+    <td>{{m['Admin']['RealName']}}</td>
+  </tr>
+  {% end %}
+  {% end %}
+  {% if admin.has_role('super') or admin.has_role('supermanager') %}
+  <tr>
+    <th><a href="/admin/contract/{{contract.id}}/managers" class="btn">Изменить менеджеров</a></th>
+    <td>&nbsp;</td>
+  </tr>
+  {% end %}
+  </tr>
+</table>
+
+  {% if len(planned_events) > 0 and not admin.has_role('bb') %}
+<h4><i class="icon-calendar"></i> Запланированные события</h4>
+<a href="{{reverse_url('AdminResumeContract', contract.id)}}" class="btn btn-success">Отменить запланированное расторжение</a><br>
+<table class="table table-condensed">
+  {% for e in planned_events %}
+  <tr>
+    <th>{{utils.datetime_utc_to_local(e.planned_at)}}</th>
+    <td>{{e.admin.real_name}}: {% if e.action == 'close' %}расторжение контракта{% end %}</td>
+  </tr>
+  {% end %}
+</table>
+  {% end %}
+
+  {% if admin.has_role('close') and contract.state == 'open' %}
+<h4>Закрыть контракт</h4>
+  <a href="{{reverse_url('AdminCloseContract', contract.id)}}" class="btn btn-danger">Расторгнуть немедленно</a><br>
+    {% if len(planned_events) == 0 %}или запланировать расторжение:
+  <form action="{{reverse_url('AdminCloseContract', contract.id)}}" method="POST" class="form-inline">
+    <input type="text" id="planned_at" name="planned_at">
+    <button type="submit" name="when" value="later" class="btn btn-danger">Запланировать</button>
+  </form>
+    {% end %}
+  {% end %}
+  <script>
+    $("#planned_at").datepicker({ dateFormat: "yy-mm-dd" });
+  </script>
+{% end %}

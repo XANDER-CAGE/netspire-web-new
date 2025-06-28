@@ -1,0 +1,48 @@
+{% extends "admin_base.html" %}
+{% block title %}Администраторы{% end %}
+{% block admin_body %}
+{% import json %}
+{% import utils %}
+
+<table class="table table-condensed">
+    <tr>
+        <th>Общая сумма открытых контрактов:</th>
+        <th>Общая сумма закрытых контрактов:</th>
+        <th>Общая сумма замороженных контрактов:</th>
+    </tr>
+    <tr>
+        <td>{{utils.int_to_money(s['balance_open'])}} UZS</td>
+        <td>{{utils.int_to_money(s['balance_closed'])}} UZS</td>
+        <td>{{utils.int_to_money(s['balance_suspended'])}} UZS</td>
+    </tr>
+</table>
+<table class="table table-condensed">
+    <tr>
+        <th>Общая сумма открытых контрактов с учетом скидки:</th>
+        <th>Общая сумма закрытых контрактов с учетом скидки:</th>
+        <th>Общая сумма замороженных контрактов с учетом скидки:</th>
+    </tr>
+    <tr>
+        <td>{{utils.int_to_money(s['balance_discount_open'])}} UZS</td>
+        <td>{{utils.int_to_money(s['balance_discount_closed'])}} UZS</td>
+        <td>{{utils.int_to_money(s['balance_discount_suspended'])}} UZS</td>
+    </tr>
+</table>
+<table class="table table-condensed">
+    <tr>
+        <th>Логин</th>
+        <th>Абон. плата</th>
+        <th>Статус</th>
+    </tr>
+    {% for a in accounts %}
+    {% set fee = json.loads(a.plan_data) %}
+    {% if a.state == 'open' %}
+    <tr>
+        <td>{{a.login}}</td>
+        <td>{{utils.int_to_money(fee['MONTHLY_FEE'])}} UZS</td>
+        <td>{{a.state}}</td>
+    </tr>
+    {% end %}
+    {% end %}
+</table>
+{% end %}

@@ -1,0 +1,139 @@
+<label for="currency">Валюта</label>
+<select name="currency" id="currency">
+  {% for c in currencies %}
+    <option value="{{c.id}}"{% if plan.currency_id == c.id %} selected{% end %}>
+      {{c.name}} ({{c.description}})
+    </option>
+  {% end %}
+</select>
+<label for="name">Название</label>
+<input type="text" name="name" id="name" value="{{plan.name}}">
+<label for="code">Кодовое имя</label>
+<input type="text" name="code" id="code" value="{{plan.code}}">
+<label for="auth_algo">Алгоритм ограничения доступа</label>
+<input type="text" name="auth_algo" id="auth_algo" value="{{plan.auth_algo}}">
+<label for="acct_algo">Алгоритм тарификации</label>
+<input type="text" name="acct_algo" id="acct_algo" value="{{plan.acct_algo}}">
+<label for="monthly_fee">Ежемесячная абонентская плата</label>
+<input type="text" name="monthly_fee" id="monthly_fee" value="{{settings['MONTHLY_FEE']}}">
+<label for="prepaid">Количество предоплаченных МБ</label>
+<input type="text" name="prepaid" id="prepaid" value="{{settings['PREPAID'] / 1024 / 1024}}">
+{% set speeds = map(lambda x: int(x) / 1024, settings['SHAPER'].split()) %}
+<label for="speed_local">Скорость внутри сети, Кбит/с</label>
+<input type="text" name="speed_local" id="speed_local" value="{{speeds[0]}}">
+<label for="speed_tasix">Скорость TasIX, Кбит/с</label>
+<input type="text" name="speed_tasix" id="speed_tasix" value="{{speeds[1]}}">
+<label for="speed_internet">Скорость Интернет, Кбит/с</label>
+<input type="text" name="speed_internet" id="speed_internet" value="{{speeds[2]}}">
+<fieldset>
+  <legend>Интервалы доступа</legend>
+  {% if 'ACCESS_INTERVALS' in settings and len(settings['ACCESS_INTERVALS']) %}
+    <table class="table table-bordered table-condensed table-striped">
+      <thead>
+	<tr>
+	  <th rowspan="2">начало</th>
+	  <th rowspan="2">конец</th>
+	  <th rowspan="2">доступ</th>
+	  <th colspan="3">Скорость, Кбит/с</th>
+	  <th rowspan="2">&nbsp;</th>
+	</tr>
+	<tr>
+	  <th>Сеть</th>
+	  <th>TasIX</th>
+	  <th>Интернет</th>
+	</tr>
+      </thead>
+      <tbody>
+	{% set start = '00:00' %}
+	{% for interval in settings['ACCESS_INTERVALS'] %}
+	  {% set seconds, access = interval[0:2] %}
+	  {% if len(interval) == 3 %}
+	    {% set int_speeds = map(lambda x: int(x) / 1024, interval[2].split()) %}
+	  {% else %}
+	    {% set int_speeds = speeds %}
+	  {% end %}
+	  {% set end = '%02d:%02d' % (seconds / 3600, (seconds % 3600) / 60) %}
+	  <tr>
+	    <td>{{start}}</td>
+	    <td>{{end}}</td>
+	    <td>
+	      <label class="radio inline">
+		<input type="radio" name="access_{{seconds}}" value="accept"{% if access=='accept' %} checked{% end %}> разрешён
+	      </label>
+	      <label class="radio inline">
+		<input type="radio" name="access_{{seconds}}" value="reject"{% if access=='reject' %} checked{% end %}> запрещён
+	      </label>
+	    </td>
+	    <td>
+	      <input type="text" name="int_speed0_{{seconds}}" value="{{int_speeds[0]}}" class="input-mini">
+	    </td>
+	    <td>
+	      <input type="text" name="int_speed1_{{seconds}}" value="{{int_speeds[1]}}" class="input-mini">
+	    </td>
+	    <td>
+	      <input type="text" name="int_speed2_{{seconds}}" value="{{int_speeds[2]}}" class="input-mini">
+	    </td>
+	    <td>
+	      <button type="submit" name="remove_ai" value="{{seconds}}" class="btn">удалить</button>
+	    </td>
+	  </tr>
+	  {% set start = end %}
+	{% end %}
+      </tbody>
+    </table>
+  {% else %}
+  <p class="text-success">Доступ разрешён круглосуточно</p>
+  {% end %}
+  <label for="new_ai_time">Конец нового периода</label>
+  <input type="text" name="new_ai_time" placeholder="24:00">
+  <label for="new_ai_speed0">Скорость внутри сети</label>
+  <input type="text" name="new_ai_speed0" class="input-mini">
+  <label for="new_ai_speed1">Скорость внутри TasIX</label>
+  <input type="text" name="new_ai_speed1" class="input-mini">
+  <label for="new_ai_speed2">Скорость интернет</label>
+  <input type="text" name="new_ai_speed2" class="input-mini">
+  <label>Доступ</label>
+  <label class="radio inline">
+    <input type="radio" name="new_ai_access" value="accept" checked> разрешён
+  </label>
+  <label class="radio inline">
+    <input type="radio" name="new_ai_access" value="reject"> запрещён
+  </label>
+  <button type="submit" name="add_i" value="access" class="btn">Добавить</button>
+</fieldset>
+<fieldset>
+  <legend>Стоимость МБ интернет сверх предоплаты</legend>
+  <table class="table table-bordered table-condensed table-striped">
+    <thead>
+      <tr>
+	<th>начало</th>
+	<th>конец</th>
+	<th>цена</th>
+	<th>&nbsp;</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% set start = '00:00' %}
+      {% for seconds, prices in settings['INTERVALS'] %}
+        {% set end = '%02d:%02d' % (seconds / 3600, (seconds % 3600) / 60) %}
+        <tr>
+	  <td>{{start}}</td>
+	  <td>{{end}}</td>
+	  <td>
+	    <input type="text" name="price_{{seconds}}" value="{{prices['internet'][0]}}">
+	  </td>
+	  <td>
+	    <button type="submit" name="remove_pi" value="{{seconds}}" class="btn">удалить</button>
+	  </td>
+	</tr>
+	{% set start = end %}
+      {% end %}
+    </tbody>
+  </table>
+  <label for="new_pi_time">Конец нового периода</label>
+  <input type="text" name="new_pi_time" placeholder="24:00">
+  <label for="new_pi_price">Цена</label>
+  <input type="text" name="new_pi_price">
+  <br>
+  <button type="submit" name="add_i" value="price" class="btn">Добавить</button>
+</fieldset>

@@ -1,0 +1,24 @@
+{% extends "admin_base.html" %}
+{% block title %}Скорости портов{% end %}
+{% block admin_body %}
+{% import utils %}
+<h3>Скорости портов</h3>
+
+<p>В настоящее время созданы следующие наборы скоростей для портов:</p>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Входящая/ исходящая скорость, Кбит/с</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for s in speeds %}
+    <tr>
+      <td>{{s.input}}/{{s.output}}</td>
+    </tr>
+    {% end %}
+  </tbody>
+</table>
+
+{% end %}

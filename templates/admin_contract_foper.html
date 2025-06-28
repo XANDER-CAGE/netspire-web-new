@@ -1,0 +1,24 @@
+{% extends "admin_contract_base.html" %}
+{% block admin_contract_section %}
+
+ <form action="" method="POST">
+  <label>Тип проводки:</label>
+  <label class="radio"><input type="radio" name="type" value="up" checked>начисление</label>
+  <label class="radio"><input type="radio" name="type" value="down">списание</label>
+  <label for="currency">Валюта</label>
+  <select name="currency" id="currency">
+    {% for c in currencies %}<option value="{{c.id}}">{{c.name}}: {{c.description}}</option>{% end %}
+  </select>
+  <label for="amount">Сумма</label>
+  <input type="text" name="amount" id="amount">
+  <label for="comment">Комментарий</label>
+  <input type="text" name="comment" id="comment" class="input-xxlarge">
+  <label for="created_at">Дата проводки</label>
+  <input type="text" name="created_at" id="created_at" value="{{created_at}}">
+  <br>
+  <button type="submit" class="btn btn-primary">Выполнить</button>
+ </form>
+ <script>
+   $("#created_at").datepicker({ dateFormat: "yy-mm-dd" });
+ </script>
+{% end %}

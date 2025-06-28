@@ -1,0 +1,39 @@
+{% extends "admin_base.html" %}
+{% block title %}Журнал входа в биллинг{% end %}
+{% block admin_body %}
+{% import utils %}
+
+<h3>Журнал входа</h3>
+
+<form action="" method="GET">
+  <label for="when">Дата</label>
+  <input type="text" name="when" id="when" value="{{handler.get_argument('when', '')}}">
+  <br>
+  <button type="submit" class="btn">Показать</button>
+</form>
+
+{% if result is not None %}
+<table class="table">
+  <thead>
+    <tr>
+      <th>Оператор</th>
+      <th>Дата</th>
+      <th>IP-адрес</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in result %}
+    <tr>
+      <td>{{admins[r['admin_id']].real_name}}</td>
+      <td>{{utils.datetime_utc_to_local(r['logged_in_at'])}}</td>
+      <td>{{r['ip']}}</td>
+    </tr>
+    {% end %}
+  </tbody>
+</table>
+{% end %}
+
+<script>
+  $("#when").datepicker({ dateFormat: "yy-mm-dd" });
+</script>
+{% end %}

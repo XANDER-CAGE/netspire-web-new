@@ -1,0 +1,51 @@
+{% extends "admin_base.html" %}
+{% block title %}Пользователи{% end %}
+{% block admin_body %}
+
+<h3>Пользователи</h3>
+
+<table class="table table-condensed">
+  <caption>Активные</caption>
+  <thead>
+    <tr>
+      <th>Имя</th>
+      <th>Email</th>
+      <th>Дата создания</th>
+      <th>Роли</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for a in active %}
+    <tr>
+      <td><a href="{{reverse_url('AdminViewAdmin', a.id)}}">{{a.real_name}}</a></td>
+      <td>{{a.email}}</td>
+      <td>{{a.created_at}}</td>
+      <td>{{a.roles}}</td>
+    </tr>
+    {% end %}
+  </tbody>
+</table>
+
+<table class="table table-condensed">
+  <caption>Отключённые</caption>
+  <thead>
+    <tr>
+      <th>Имя</th>
+      <th>Email</th>
+      <th>Дата создания</th>
+      <th>Роли</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for a in disabled %}
+    <tr>
+      <td><a href="{{reverse_url('AdminViewAdmin', a.id)}}">{{a.real_name}}</a></td>
+      <td>{{a.email}}</td>
+      <td>{{a.created_at}}</td>
+      <td>{{a.roles}}</td>
+    </tr>
+    {% end %}
+  </tbody>
+</table>
+
+{% end %}

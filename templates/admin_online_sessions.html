@@ -1,0 +1,186 @@
+{% extends "admin_base.html" %}
+{% block title %}Клиенты в сети{% end %}
+{% block admin_body %}
+  
+ {% import utils %}
+ {% import datetime %}
+ {% if action == 'view' %}
+  <h3>Клиенты в сети 
+    <small>
+      {% set active_count = 0 %}
+      {% set shown_count = 0 %}
+      {% for s, a, c, mac in online %}
+        {% set traffic_total = s.octets_in + s.octets_out %}
+        {% if traffic_total > 1048576 %}
+          {% set active_count = active_count + 1 %}
+        {% end %}
+        {% if handler.get_argument('show_all', '') or traffic_total > 1048576 %}
+          {% set shown_count = shown_count + 1 %}
+        {% end %}
+      {% end %}
+      {% if handler.get_argument('show_all', '') %}
+        (показано {{shown_count}} из {{len(online)}}, активных {{active_count}})
+      {% else %}
+        (активных {{shown_count}})
+      {% end %}
+    </small>
+  </h3>
+
+  {% module FlashMessage(handler.get_flash_message()) %}
+  
+  <div class="row-fluid">
+    <div class="span12">
+      <form class="form-search">
+        <input type="text" id="searchInput" class="input-medium search-query" placeholder="Поиск..." onkeyup="filterTable()">
+        <label class="checkbox inline">
+          <input type="checkbox" id="trafficFilter" {% if not handler.get_argument('show_all', '') %}checked{% end %} onchange="toggleFilter()"> Только активные
+        </label>
+        <a href="javascript:refreshTable()" class="btn btn-small"><i class="icon-refresh"></i> Обновить</a>
+        {% if handler.get_argument('show_all', '') %}
+          <a href="/admin/online" class="btn btn-small btn-warning">Только активные</a>
+        {% else %}
+          <a href="/admin/online?show_all=1" class="btn btn-small">Показать всех</a>
+        {% end %}
+      </form>
+    </div>
+  </div>
+
+  <table class="table table-striped table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Логин</th>
+        <th>Название</th>
+        <th>Длительность</th>
+        <th>IP-адрес</th>
+        <th>Статический IP</th>
+        <th>MAC-адрес</th>
+        <th class="text-right">Баланс</th>
+        <th class="text-right">Входящий, МБ</th>
+        <th class="text-right">Исходящий, МБ</th>
+        <th class="text-right">Сумма</th>
+        <th>Статус</th>
+        <th>Действия</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% set now = datetime.datetime.now() %}
+      {% for s, a, c, mac in online %}
+        {% set start_time = utils.datetime_utc_to_local(s.started_at) %}
+        {% set traffic_total = s.octets_in + s.octets_out %}
+        {% if handler.get_argument('show_all', '') or traffic_total > 1048576 %}
+        <tr>
+          <td>
+            <a href="{{reverse_url('AdminContractOverview', c.id)}}">{{a.login}}</a>
+          </td>
+          <td title="{{c.key_field.info_value}}">
+            {% if len(c.key_field.info_value) > 30 %}
+              {{c.key_field.info_value[:30]}}...
+            {% else %}
+              {{c.key_field.info_value}}
+            {% end %}
+          </td>
+          <td title="Начало: {{start_time}}">
+            {{utils.interval_to_string(now - start_time)}}
+          </td>
+          <td>{{s.ip}}</td>
+          <td>
+            {% set static_ip = a.static_ip_address() %}
+            {% if static_ip %}
+              <code style="font-family: monospace; color: #0066cc;">{{static_ip}}</code>
+            {% else %}
+              <span class="muted">-</span>
+            {% end %}
+          </td>
+          <td>
+            {% if mac and mac != 'unknown' %}
+              <code style="font-family: monospace;">{{mac}}</code>
+            {% else %}
+              -
+            {% end %}
+          </td>
+          <td class="text-right">
+            {% if c.balance >= 0 %}
+              <span style="color: green;"><strong>{{utils.human_money(c.balance)}}</strong></span>
+            {% else %}
+              <span style="color: red;"><strong>{{utils.human_money(c.balance)}}</strong></span>
+            {% end %}
+          </td>
+          <td class="text-right">{{'%.2f' % (s.octets_in / 1048576.)}}</td>
+          <td class="text-right">{{'%.2f' % (s.octets_out / 1048576.)}}</td>
+          <td class="text-right"><strong>{{'%.2f' % s.amount}}</strong></td>
+          <td>
+            {% if traffic_total > 1048576 %}
+              <span class="label label-success">Активен</span>
+            {% else %}
+              <span class="label">Подключен</span>
+            {% end %}
+          </td>
+          <td>
+            <a href="?action=kick&id={{s.id}}" class="btn btn-mini btn-danger" 
+               onclick="return confirm('Отключить пользователя {{a.login}}?')" title="Отключить">
+              <i class="icon-remove icon-white"></i>
+            </a>
+            <a href="{{reverse_url('AdminContractSessions', c.id)}}" class="btn btn-mini" title="История">
+              <i class="icon-time"></i>
+            </a>
+          </td>
+        </tr>
+        {% end %}
+      {% end %}
+    </tbody>
+  </table>
+
+  <script type="text/javascript">
+    function filterTable() {
+      var searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      var table = document.querySelector('table tbody');
+      var rows = table.querySelectorAll('tr');
+      
+      rows.forEach(function(row) {
+        var login = row.cells[0].textContent.toLowerCase();
+        var name = row.cells[1].textContent.toLowerCase();
+        var ip = row.cells[3].textContent.toLowerCase();
+        var staticIp = row.cells[4].textContent.toLowerCase();
+        
+        if (login.indexOf(searchTerm) !== -1 || 
+            name.indexOf(searchTerm) !== -1 || 
+            ip.indexOf(searchTerm) !== -1 ||
+            staticIp.indexOf(searchTerm) !== -1) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+    
+    function toggleFilter() {
+      var checked = document.getElementById('trafficFilter').checked;
+      if (checked) {
+        window.location.href = window.location.pathname;
+      } else {
+        window.location.href = window.location.pathname + '?show_all=1';
+      }
+    }
+    
+    function refreshTable() {
+      window.location.reload();
+    }
+  </script>
+
+  {% else %}
+    <h3>Выбросить клиента из сети</h3>
+    
+    <div class="alert alert-block">
+      <h4>Предупреждение!</h4>
+      Вы собираетесь закрыть сессию пользователя <strong>{{session.account.login}}</strong> с IP-адресом {{session.ip}}.
+    </div>
+
+    <form action="{{reverse_url('AdminOnlineList')}}" method="POST" class="form-horizontal">
+      <input type="hidden" name="id" value="{{session.id}}">
+      <div class="form-actions">
+        <button type="submit" class="btn btn-danger">Закрыть сессию</button>
+        <a href="{{reverse_url('AdminOnlineList')}}" class="btn">Отмена</a>
+      </div>
+    </form>
+  {% end %}
+{% end %}

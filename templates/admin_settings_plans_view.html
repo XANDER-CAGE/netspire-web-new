@@ -1,0 +1,50 @@
+{% extends "admin_base.html" %}
+{% block title %}Тарифный план{% end %}
+{% block admin_body %}
+{% import utils %}
+<h3>Тарифный план {{plan.code}}</h3>
+
+<ul>
+  <li>Название: {{plan.name}}</li>
+  <li>Абонентская плата: {{settings['MONTHLY_FEE']}}</li>
+  <li>Предоплаченных МБ: {{settings['PREPAID']/1024/1024}} МБ</li>
+  <li>Интервалы доступа:
+    <ul>
+      {% if 'ACCESS_INTERVALS' in settings and len(settings['ACCESS_INTERVALS']) > 0 %}
+        {% set last = 0 %}
+        {% set last_hour = 0 %}
+        {% set last_minute = 0 %}
+        {% for interval in settings['ACCESS_INTERVALS'] %}
+          {% set mark, access, speeds = interval %}
+          {% set hour = mark / 3600 %}
+          {% set minute = (mark - hour * 3600) / 60 %}
+          {% if access == 'accept' %}
+      <li>{{'%02d:%02d - %02d:%02d' % (last_hour, last_minute, hour, minute)}}: {{'/ '.join(map(lambda x: str(int(x)/1024), speeds.split()))}} Кбит/с</li>
+          {% else %}
+      <li>{{'%02d:%02d - %02d:%02d' % (last_hour, last_minute, hour, minute)}}: нет доступа</li>
+          {% end %}
+          {% set last_hour, last_minute = hour, minute %}
+        {% end %}
+      {% else %}
+        {% set speeds = settings['SHAPER'].split() %}
+      <li>00:00 - 24:00: {{'/ '.join(map(lambda x: str(int(x)/1024), speeds))}} Кбит/с</li>
+      {% end %}
+    </ul>
+  </li>
+  <li>Цены сверхлимита:
+    <ul>
+      {% set last = 0 %}
+      {% set last_hour = 0 %}
+      {% set last_minute = 0 %}
+      {% for interval in settings['INTERVALS'] %}
+        {% set mark, prices = interval %}
+        {% set hour = mark / 3600 %}
+        {% set minute = (mark - hour * 3600) / 60 %}
+      <li>{{'%02d:%02d - %02d:%02d' % (last_hour, last_minute, hour, minute)}}: {{prices['internet'][0]}}</li>
+        {% set last_hour, last_minute = hour, minute %}
+      {% end %}
+    </ul>
+  </li>
+</ul>
+
+{% end %}

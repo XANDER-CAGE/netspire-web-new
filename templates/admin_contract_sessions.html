@@ -1,0 +1,73 @@
+{% extends "admin_contract_base.html" %}
+{% block admin_contract_section %}
+{% import utils %}
+
+  <form action="{{reverse_url('AdminContractSessions', contract.id)}}" method="GET">
+    <label for="from">Начальная дата</label>
+    <input type="text" name="from" id="from" value="{{handler.get_argument('from', '')}}" autocomplete="off">
+    <label for="till">Конечная дата</label>
+    <input type="text" name="till" id="till" value="{{handler.get_argument('till', '')}}" autocomplete="off">
+    <label for="account">Аккаунт:</label>
+    <select name="account" id="account">
+      {% for a in contract.accounts %}
+      <option value="{{a.id}}" {% if a.id == int(handler.get_argument('account', 0)) %} selected{% end %}>{{a.login}}</option>
+      {% end %}
+    </select>
+    <br>
+    <button type="submit" class="btn">Показать</button>
+  </form>
+
+  {% if sessions is not None %}
+  <table class="table table-bordered table-condensed table-striped">
+    <thead>
+      <tr>
+	<th>Id</th>
+	<th>Начало</th>
+	<th>Конец</th>
+	<th>IP-адрес</th>
+  <th>MAC-адрес</th>
+	<th>Входящий трафик, МБ</th>
+	<th>Исходящий трафик, МБ</th>
+	<th>Сумма</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% set total_in = 0 %}
+      {% set total_out = 0 %}
+      {% for s in sessions %}
+      <tr>
+	<td><a href="{{reverse_url('AdminContractSessions', contract.id)}}?session_id={{s.id}}">{{s.id}}</a></td>
+	<td>{{utils.datetime_utc_to_local(s.started_at)}}</td>
+	<td>{{utils.datetime_utc_to_local(s.finished_at)}}</td>
+	<td>{{s.ip}}</td>
+  <td>{{s.sid}}</td>
+	<td>{{'{:.2f}'.format(s.octets_in / 1048576.)}}
+	<td>{{'{:.2f}'.format(s.octets_out / 1048576.)}}
+	<td>{{'{:.6f}'.format(s.amount)}}</td>
+      </tr>
+        {% set total_in += s.octets_in %}
+        {% set total_out += s.octets_out %}
+      {% end %}
+      <tr>
+	<th colspan="4">Итого</th>
+	<th>{{'{:.2f}'.format(total_in / 1048576.)}}
+	<th>{{'{:.2f}'.format(total_out / 1048576.)}}
+	<td>&nbsp;</td>
+      </tr>
+      {% for t in traffic %}
+      <tr>
+	<th colspan="4">{{t[0]}}</th>
+	<th>{{'{:.2f}'.format(t[1] / 1048576)}}
+	<th>{{'{:.2f}'.format(t[2] / 1048576)}}
+	<td>&nbsp;</td>
+      </tr>
+      {% end %}
+    </tbody>
+  </table>
+  {% end %}
+
+   <script>
+   $("#from").datepicker({ dateFormat: "yy-mm-dd" });
+   $("#till").datepicker({ dateFormat: "yy-mm-dd" });
+   </script>
+{% end %}

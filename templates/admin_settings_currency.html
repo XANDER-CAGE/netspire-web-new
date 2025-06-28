@@ -1,0 +1,26 @@
+{% extends "admin_base.html" %}
+{% block title %}Настройки валют{% end %}
+{% block admin_body %}
+
+  <h3>Валюты</h3>
+
+  <table class="table">
+    <thead>
+      <tr>
+	<th>Короткое обозначение</th>
+	<th>Название</th>
+	<th>Описание</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in currencies %}
+      <tr>
+        <td>{{c.short_name}}</td>
+        <td>{{c.name}}</td>
+        <td>{{c.description}}</td>
+      </tr>
+      {% end %}
+    </tbody>
+  </table>
+
+{% end %}

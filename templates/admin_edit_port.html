@@ -1,0 +1,49 @@
+{% extends "admin_base.html" %}
+{% block title %}Редактирование порта{% end %}
+{% block admin_body %}
+{% import utils %}
+<h3>Редактирование порта</h3>
+
+<form action="{{reverse_url('AdminEditPort', port_id)}}" method="POST">
+  <label for="port_type">Тип:</label>
+  <select name="port_type" id="port_type">
+    {% for port_type in port_types %}
+    <option value="{{port_type.id}}" {% if p['port_type'] == port_type.id %}selected{% end %}>{{port_type.name}}</option>
+    {% end %}
+  </select>
+
+  <label for="port_provider">Поставщик:</label>
+  <select name="port_provider" id="port_provider">
+    {% for provider in providers %}
+    <option value="{{provider.id}}" {% if p['port_provider'] == provider.id %}selected{% end %}>{{provider.name}}</option>
+    {% end %}
+  </select>
+
+  <label for="login">Логин:</label>
+  <input type="text" name="login" id="login" value="{{p['login']}}">
+
+  <label for="info">Информация:</label>
+  <input type="text" name="info" id="info" value="{{p['info']}}">
+
+  <label for="co">АТС:</label>
+  <select name="co" id="co">
+    {% for area in areas %}
+      {% for co in area.COs %}
+    <option value="{{co.id}}" {% if p['co'] == co.id %}selected{% end %}>{{area.name}}: {{co.name}}</option>
+      {% end %}
+    {% end %}
+  </select>
+
+  <label for="speed">Скорость:</label>
+  <select name="speed" id="speed">
+    {% for speed in speeds %}
+    <option value="{{speed.id}}" {% if p['speed'] == speed.id %}selected{% end %}>{{speed.input}}/{{speed.output}}</option>
+    {% end %}
+  </select>
+
+  <br>
+  <button type="submit" class="btn btn-primary" name="action" value="confirm">Применить</button>
+  <a href="{{reverse_url('AdminPorts')}}" class="btn">Отмена</a>
+</form>
+
+{% end %}

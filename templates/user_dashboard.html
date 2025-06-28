@@ -1,0 +1,48 @@
+{% extends "user_dashboard_base.html" %}
+{% block title %}Обзор{% end %}
+{% block tab %}
+
+<h2>Основная информация</h2>
+
+<div class="row">
+  <div class="col-md-4">
+    <p>Тип контракта:</p>
+    <h3>{{info['contract_type']}}</h3>
+  </div>
+  <div class="col-md-4">
+    <p>Текущий баланс:</p>
+    <h3>{{info['balance']}}</h3>
+  </div>
+  <div class="col-md-4">
+    {% if info['session']['ip'] is None %}
+    <h3>Не подключен к Интернет</h3>
+    {% else %}
+    <p>Текущая сессия:</p>
+    <h3>IP: {{info['session']['ip']}}</h3>
+    <h3>Трафик: {{'/ '.join(map(lambda x: '{:.1f} МБ'.format(x/1024/1024), info['session']['traffic']))}}</h3>
+    {% end %}
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-4">
+    {% if len(managers) %}
+    <p>Ваш менеджер:</p>
+    {% for m in managers %}
+    <h3>{{m['Admin']['RealName']}}<br>{{m['Admin']['Phone']}}</h3>
+    {% end %}
+    {% else %}
+    <p>Менеджер не назначен</p>
+    {% end %}
+  </div>
+  {% if info['traffic_limits'] %}
+  <div class="col-md-4">
+    <p>Остаток трафика:</p>
+    <h3>{{ '{:.1f} МБ'.format(info['traffic_limits']['remainder']/1024./1024)}}</h3>
+  </div>
+  {% end %}
+  <div class="col-md-4">
+  </div>
+</div>
+
+{% end %}

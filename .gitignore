@@ -1,0 +1,4 @@
+# compiled python modules
+*.pyc
+.vscode/
+static

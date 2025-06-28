@@ -1,0 +1,69 @@
+{% extends "admin_base.html" %}
+{% block title %}Обзор{% end %}
+{% block admin_body %}
+{% import utils %}
+
+<h2>Обзор</h2>
+<div class="row-fluid">
+  {% if admin.has_role('bb') %}
+  <div class="span3">
+    <h3>
+      <a href="{{reverse_url('ContractSearch')}}?k=-1&state=open&action=display">{{s['state-open']}}</a>
+      <small>активных контрактов на сумму: {{s['balance']}}</small>
+    </h3>
+    <p>
+      <a href="{{reverse_url('ContractSearch')}}?k=-1&state=closed&action=display">{{s['state-other']}}</a> остальных,
+      <a href="{{reverse_url('ContractSearch')}}?k=-1&state=any&action=display">{{s['state-open'] + s['state-other']}}</a>
+      всего</p>
+  </div>
+  {% else %}
+  <div class="span3">
+    <h3><a href="{{reverse_url('AdminOnlineList')}}">{{s['online']}}</a> <small>клиенты в сети</small></h3>
+  </div>
+  <div class="span3">
+    <h3>
+      <a href="{{reverse_url('ContractSearch')}}?k=-1&state=open&action=display">{{s['state-open']}}</a>
+      <small>активных контрактов</small>
+    </h3>
+    <p>
+      <a href="{{reverse_url('ContractSearch')}}?k=-1&state=closed&action=display">{{s['state-other']}}</a> остальных,
+      <a href="{{reverse_url('ContractSearch')}}?k=-1&state=any&action=display">{{s['state-open'] + s['state-other']}}</a> всего</p>
+  <table class="table">
+    <thead>
+    <tr>
+      <th>Сумма активных контрактов</th>
+    </tr>
+    <tr><th>Сумма активных контрактов с учетом скидки</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>{{utils.int_to_money(s['balance'])}} UZS</td>
+      </tr>
+      <tr><td>{{utils.int_to_money(s['balance_discount'])}} UZS</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="span4">
+    <h3><a href="{{reverse_url('AdminDebtors')}}">{{s['debtors']}}</a> <small>должники (отрицательный баланс)</small></h3>
+    <table class="table">
+      <thead>
+	<tr>
+	  <th>Сумма</th>
+	  <th>Валюта</th>
+	</tr>
+      </thead>
+      <tbody>
+	{% for c in currencies %}
+	<tr>
+	  <td>{{utils.human_money(s['debtor-per-currency'][c.id])}}</td>
+	  <td>{{c.name}}</td>
+	</tr>
+	{% end %}
+      </tbody>
+    </table>
+  </div>
+  {% end %}
+</div>
+<small>данные собраны за {{s['duration']}} сек.</small>
+
+{% end %}

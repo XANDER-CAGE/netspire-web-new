@@ -1,0 +1,189 @@
+{% extends "admin_base.html" %}
+{% block title %}Поиск{% end %}
+{% block admin_body %}
+
+{% import utils %}
+{% set searched_for = handler.get_argument('search', '').strip() %}
+  <h3>Поиск</h3>
+
+  <form action="" method="GET" class="form-inline">
+    <label for="search">Поиск по номеру контракта, логину или названию</label>
+    <input name="search" type="text" id="search" class="input-block-level" value="{{searched_for}}">
+    <label>Тип контракта:
+      {% set selected = int(handler.get_argument('k', '-1')) %}
+      <select name="k" id="kind">
+	<option value="-1"{% if selected == -1 %} selected{% end %}>любой</option>
+	{% for k in kinds %}
+	<option value="{{k.id}}"{% if selected == k.id %} selected{% end %}>{{k.kind_name}}</option>
+	{% end %}
+      </select>
+    </label>
+    <label>Состояние контракта:
+      {% set state = handler.get_argument('state', 'open') %}
+      <select name="state">
+	<option value="any"{% if state=='any' %} selected{% end %}>любой</option>
+	<option value="open"{% if state=='open' %} selected{% end %}>активный</option>
+	<option value="closed"{% if state=='closed' %} selected{% end %}>расторженный</option>
+      </select>
+    </label>
+    <br>
+    <button type="submit" name="action" value="search" class="btn btn-primary">Поиск</button>
+    <button type="submit" name="action" value="display" class="btn">Показать все</button>
+  </form>
+
+  {% if results is not None %}
+    {% if state == 'any' %}
+      {% set open = [] %}
+      {% set other = [] %}
+      {% for k in ['number', 'account', 'name'] %}
+        {% for c in results[k] %}
+          {% if c.state == 'open' %}
+            {% set open.append(c) %}
+          {% else %}
+            {% set other.append(c) %}
+          {% end %}
+        {% end %}
+      {% end %}
+      <ul class="nav nav-tabs" id="state-select">
+	<li{% if state=='any' %} class="active"{% end %}><a href="#any">Все ({{len(open)+len(other)}})</a></li>
+	<li{% if state=='open' %} class="active"{% end %}><a href="#open">Активные ({{len(open)}})</a></li>
+	<li{% if state=='closed' %} class="active"{% end %}><a href="#closed">Расторженные ({{len(other)}})</a></li>
+      </ul>
+      <div class="tab-content">
+	<div class="tab-pane{% if state=='any' %} active{% end %}" id="any">
+	  <table class="table table-condensed">
+	    <thead>
+	      <tr>
+		<th>Номер</th>
+		<th>Тип контракта</th>
+		<th>Состояние</th>
+		<th>Название</th>
+		{% if not admin.has_role('bb') %}<th>Баланс</th>{% end %}
+		<th>Аккаунты</th>
+	      </tr>
+	    </thead>
+	    <tbody>
+	      {% for contract in open + other %}
+	      <tr>
+		<td><a href="{{reverse_url('AdminContractOverview', contract.id)}}">{{contract.id}}</a></td>
+		<td>{{contract.kind.kind_name}}</td>
+		<td>{% if contract.state == 'open' %}активный{% elif contract.state == 'closed'%}<i class="text-error">расторжен</i>{% else %}неизвестно{% end %}</td>
+		<td><a href="{{reverse_url('AdminContractOverview', contract.id)}}">{{contract.key_field.info_value}}</a></td>
+		{% if not admin.has_role('bb') %}<td>{{utils.human_money(contract.balance)}}</td>{% end %}
+		<td>
+		  {% for a in contract.accounts %}
+		  {% if a.login == searched_for %}<b>{{a.login}}</b>
+		  {% else %}{{a.login}}{% end %}
+		  {% end %}
+		</td>
+	      </tr>
+	      {% end %}
+	    </tbody>
+	  </table>
+	</div>
+	<div class="tab-pane{% if state=='open' %} active{% end %}" id="open">
+	  <table class="table table-condensed">
+	    <thead>
+	      <tr>
+		<th>Номер</th>
+		<th>Тип контракта</th>
+		<th>Состояние</th>
+		<th>Название</th>
+		{% if not admin.has_role('bb') %}<th>Баланс</th>{% end %}
+		<th>Аккаунты</th>
+	      </tr>
+	    </thead>
+	    <tbody>
+	      {% for contract in open %}
+	      <tr>
+		<td><a href="{{reverse_url('AdminContractOverview', contract.id)}}">{{contract.id}}</a></td>
+		<td>{{contract.kind.kind_name}}</td>
+		<td>{% if contract.state == 'open' %}активный{% elif contract.state == 'closed'%}<i class="text-error">расторжен</i>{% else %}неизвестно{% end %}</td>
+		<td><a href="{{reverse_url('AdminContractOverview', contract.id)}}">{{contract.key_field.info_value}}</a></td>
+		{% if not admin.has_role('bb') %}<td>{{utils.human_money(contract.balance)}}</td>{% end %}
+		<td>
+		  {% for a in contract.accounts %}
+		  {% if a.login == searched_for %}<b>{{a.login}}</b>
+		  {% else %}{{a.login}}{% end %}
+		  {% end %}
+		</td>
+	      </tr>
+	      {% end %}
+	    </tbody>
+	  </table>
+	</div>
+	<div class="tab-pane{% if state=='closed' %} active{% end %}" id="closed">
+	<table class="table table-condensed">
+	  <thead>
+	    <tr>
+	      <th>Номер</th>
+	      <th>Тип контракта</th>
+	      <th>Состояние</th>
+	      <th>Дата расторжения</th>
+	      <th>Название</th>
+	      {% if not admin.has_role('bb') %}<th>Баланс</th>{% end %}
+	      <th>Аккаунты</th>
+	    </tr>
+	  </thead>
+	  <tbody>
+	    {% for contract in other %}
+	    <tr>
+	      <td><a href="{{reverse_url('AdminContractOverview', contract.id)}}">{{contract.id}}</a></td>
+	      <td>{{contract.kind.kind_name}}</td>
+	      <td>{% if contract.state == 'open' %}активный{% elif contract.state == 'closed'%}<i class="text-error">расторжен</i>{% else %}неизвестно{% end %}</td>
+	      <td>{{utils.datetime_utc_to_local(contract.closed_at)}}</td>
+	      <td><a href="{{reverse_url('AdminContractOverview', contract.id)}}">{{contract.key_field.info_value}}</a></td>
+	      {% if not admin.has_role('bb') %}<td>{{utils.human_money(contract.balance)}}</td>{% end %}
+	      <td>
+		{% for a in contract.accounts %}
+		{% if a.login == searched_for %}<b>{{a.login}}</b>
+		{% else %}{{a.login}}{% end %}
+		{% end %}
+	      </td>
+	    </tr>
+	    {% end %}
+	  </tbody>
+	</table>
+	</div>
+      </div>
+      <script>
+	$('#state-select a').click(function (e) {
+          e.preventDefault();
+          $(this).tab('show');
+	});
+      </script>
+    {% else %}
+        <table class="table">
+	  <thead>
+	    <tr>
+	      <th>Номер</th>
+	      <th>Тип контракта</th>
+	      <th>Состояние</th>
+	      <th>Название</th>
+	      {% if not admin.has_role('bb') %}<th>Баланс</th>{% end %}
+	      <th>Аккаунты</th>
+	    </tr>
+	  </thead>
+	  <tbody>
+	    {% for k in ['number', 'account', 'name'] %}
+	      {% for contract in results[k] %}
+	    <tr>
+	      <td><a href="{{reverse_url('AdminContractOverview', contract.id)}}">{{contract.id}}</a></td>
+	      <td>{{contract.kind.kind_name}}</td>
+	      <td>{% if contract.state == 'open' %}активный{% elif contract.state == 'closed'%}<i class="text-error">расторжен</i>{% else %}неизвестно{% end %}</td>
+	      <td><a href="{{reverse_url('AdminContractOverview', contract.id)}}">{{contract.key_field.info_value}}</a></td>
+	      {% if not admin.has_role('bb') %}<td>{{utils.human_money(contract.balance)}}</td>{% end %}
+	      <td>
+		{% for a in contract.accounts %}
+		{% if a.login == searched_for %}<b>{{a.login}}</b>
+		{% else %}{{a.login}}{% end %}
+		{% end %}
+	      </td>
+	    </tr>
+	      {% end %}
+	    {% end %}
+	  </tbody>
+	</table>
+    {% end %}
+  {% end %}
+{% end %}

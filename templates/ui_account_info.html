@@ -1,0 +1,108 @@
+{% import utils %}
+
+<h4>{{account.login}}
+  {% if not admin.has_role('manager') and account.state == 'open' and not admin.has_role('bb') %}
+    <a href="{{reverse_url('AdminEditAccount', account.id)}}" class="btn btn-mini">редактировать</a>
+    {% if admin.has_role('close') %}
+      <a href="{{reverse_url('AdminCloseAccount', account.id)}}" class="btn btn-mini btn-danger">закрыть</a>
+    {% end %}
+  {% end %}
+  {% if admin.has_role('close') and not admin.has_role('manager') and not admin.has_role('bb') %}
+    {% if account.state == 'open' %}
+      <a href="{{reverse_url('AdminSuspendAccount', account.id)}}" class="btn btn-mini btn-warning">приостановить</a>
+    {% elif account.state == 'suspended' %}
+      <a href="{{reverse_url('AdminResumeAccount', account.id)}}" class="btn btn-mini btn-success">возобновить</a>
+    {% end %}
+  {% end %}
+</h4>
+
+{% set sp = account.service_parameters[0] if len(account.service_parameters) else None %}
+
+<table class="table table-condensed">
+  <thead></thead>
+  <tbody>
+    <tr>
+      <th>Состояние:</th>
+      <td>
+	{% if account.state == 'open' %}
+	  {% if account.active %}<strong class="text-success">включен</strong>
+	  {% else %}<strong class="text-error">выключен</strong>{% end %}
+	{% elif account.state == 'closed' %}
+          <strong class="text-error">закрыт с {{utils.datetime_utc_to_local(account.closed_at)}}</strong>
+  {% elif account.state == 'suspended' %}
+  <strong class="text-error">приостановлен</strong>
+	{% else %}
+	неизвестно
+	{% end %}
+      </td>
+    </tr>
+    <tr>
+      <th>Дата создания:</th>
+      <td>{{utils.datetime_utc_to_local(account.created_at)}}</td>
+    </tr>
+    {% if not admin.has_role('bb') %}
+    <tr>
+      <th>Тарифный план:</th>
+      <td>
+	{% if admin.has_role('manager') or not admin.has_role('plan') %}
+	<a href="{{reverse_url('AdminSettingsPlansView', account.plan_id)}}">{{account.plan.code}} ({{account.plan.name}})</a>
+	{% else %}
+	<a href="{{reverse_url('AdminSettingsPlansEdit', account.plan_id)}}">{{account.plan.code}} ({{account.plan.name}})</a>
+	{% end %}
+	{% if account.plan_id != account.new_plan_id %}Запланирован переход на другой тарифный план.{% end %}
+      </td>
+    </tr>
+    <tr>
+      <th>Абонентская плата:</th>
+      <td>{{plan_data['MONTHLY_FEE']}} {{account.plan.currency.short_name}}
+	{% if sp is not None and sp.discount > 0 %}(со скидкой: <strong>{{'%.2f' % (plan_data['MONTHLY_FEE'] * (100 - sp.discount) / 100.0)}}
+	  {{account.plan.currency.short_name}}</strong>){% end %}
+      </td>
+    </tr>
+    <tr>
+      <th>Скидка:</th>
+      <td>
+	{% if sp is None %}
+	нет
+	{% else %}
+	{{sp.discount}} %
+	{% if sp.special_till is not None %}
+	<strong>(СРОК ДО {{utils.datetime_utc_to_local(sp.special_till)}})</strong>
+	{% end %}
+	{% end %}
+	{% if account.state=='open' %}<a href="{{reverse_url('AdminChangeDiscount', account.id)}}" class="btn btn-mini">изменить</a>{% end %}
+      </td>
+    </tr>
+    <tr>
+      <th>Кредит:</th>
+      <td>
+      {% if sp is None %}
+      0.00 {{account.plan.currency.short_name}}
+      {% else %}
+      {{'{:.2f}'.format(sp.credit)}} {{account.plan.currency.short_name}}{% if sp.credit > 0 %} до {{utils.datetime_utc_to_local(sp.credit_deadline)}}{% end %}
+      {% end %}
+      {% if not admin.has_role('manager') and (admin.has_role('credit') or admin.has_role('credit2')) and account.state=='open' %}<a href="{{reverse_url('AdminChangeCredit', account.id)}}" class="btn btn-mini">изменить</a>{% end %}
+      </td>
+    </tr>
+    <tr>
+      <th>Остаток трафика:</th>
+      <td>{{plan_data['PREPAID'] / 1024 / 1024}} МБ</td>
+    </tr>
+    {% end %}
+    <tr>
+      <th>Статический ip-адрес:</th>
+      {% set ip_address = account.static_ip_address() %}
+      <td>{{ip_address}}
+	{% if ip_address != '' %}
+({% if sp is None or sp.ip_price == 0 %}бесплатный{% else %}{{'{:.2f}'.format(sp.ip_price)}} {{account.plan.currency.short_name}}{% end %})
+	{% end %}
+      </td>
+    </tr>
+    {% if not admin.has_role('bb') %}
+    <tr>
+      <th>Комментарий:</th>
+      <td>{{account.comment}} {% if account.state!='closed' and (not admin.has_role('manager') or admin.id in managers) %}<a href="{{reverse_url('AdminAccountChangeComment', account.id)}}" class="btn btn-mini">изменить</a>{% end %}</td>
+    </tr>
+    {% end %}
+  </tbody>
+</table>

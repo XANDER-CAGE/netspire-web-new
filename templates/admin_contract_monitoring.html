@@ -1,0 +1,59 @@
+{% extends "admin_base.html" %}
+{% block admin_body %}
+<script src=
+"https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.2.2/Chart.min.js"></script>
+  <style>
+    .container {
+      width: 70%;
+      margin: 15px auto;
+    }
+    body {
+      text-align: center;
+      color: green;
+    }
+    h2 {
+      text-align: center;
+      font-family: "Verdana", sans-serif;
+      font-size: 30px;
+    }
+  </style>
+  <body>
+    <div class="container">
+      <h2>Статистика скорости</h2>
+      <div>
+        <canvas id="myChart"></canvas>
+      </div>
+    </div>
+  </body>
+  
+  <script>
+    var ctx = document.getElementById("myChart").getContext("2d");
+    var myChart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: [
+          "2023-02-01T14:06:47",
+          "2023-02-01T14:06:53",
+          "2023-02-01T14:07:47",
+          "2023-02-01T14:07:50",
+          "2023-02-01T14:07:53",
+          "2023-02-01T14:07:56",
+          "2023-02-01T14:07:59",
+        ],
+        datasets: [
+          {
+            label: "rx",
+            data: [13173, 2203, 11284, 3306, 10741, 1760, 0, 3222],
+            backgroundColor: "rgba(153,205,1,0.6)",
+          },
+          {
+            label: "tx",
+            data: [0, 10248, 1347, 1022, 1379, 1065, 1038, 2038],
+            backgroundColor: "rgba(155,153,10,0.6)",
+          },
+        ],
+      },
+    });
+  </script>
+{% end %}
+

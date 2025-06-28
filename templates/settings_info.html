@@ -1,0 +1,83 @@
+{% extends "admin_base.html" %}
+{% block title %}Реквизиты контрактов{% end %}
+{% block admin_body %}
+
+<h3>Реквизиты контрактов</h3>
+
+ {% if kind is None %}
+ <p>Выберите тип контрактов, для которого вы хотите править набор реквизитов.</p>
+
+ <dl>
+   {% for k in kinds %}
+   <dt><a href="{{k.id}}">{{k.kind_name}}</a></dt>
+   <dd>{{k.description}}</dd>
+   {% end %}
+ </dl>
+
+ {% else %}
+  <h4>{{kind.kind_name}}</h4>
+  {% set action = handler.get_argument('action', '') %}
+  {% if action == '' %}
+   <table class="table table-bordered table-condensed">
+     <thead>
+       <tr>
+	 <th>Название</th>
+	 <th>Описание</th>
+	 <th>Действие</th>
+       </tr>
+     </thead>
+     <tbody>
+       {% for item in kind.fields %}
+       <tr>
+	 <td>{{item.field_name}}</td>
+	 <td>{{item.field_description}}</td>
+	 <td>
+	   <a href="?action=edit&id={{item.id}}"><i class="icon-edit"></i> править</a>
+	   <a href="?action=remove&id={{item.id}}"><i class="icon-remove"></i> удалить</a>
+	 </td>
+       </tr>
+       {% end %}
+     </tbody>
+   </table>
+   
+   <form action="" method="POST">
+     <fieldset>
+       <legend>Новый элемент реквизитов</legend>
+       <label for="name">Название</label>
+       <input type="text" name="name" id="name">
+       <label for="description">Описание</label>
+       <input type="text" name="description" id="description" class="input-xxlarge">
+       <br>
+       <button type="submit" class="btn btn-primary">Добавить</button>
+     </fieldset>
+   </form>
+  {% elif action == 'remove' %}
+   {% set item_id = int(handler.get_argument('id')) %}
+   {% set item = filter(lambda x: x.id == item_id, kind.fields)[0] %}
+   <p>Вы собираетесь удалить атрибут {{item.field_name}} ({{item.field_description}}).</p>
+   <form action="{{kind.id}}" method="POST">
+     <input type="hidden" name="id" value="{{item_id}}">
+     <input type="hidden" name="action" value="remove">
+     <button type="submit" class="btn btn-danger">Удалить</button>
+     <a href="{{kind.id}}" class="btn">Отмена</a>
+   </form>
+  {% elif action == 'edit' %}
+   {% set item_id = int(handler.get_argument('id')) %}
+   {% set item = filter(lambda x: x.id == item_id, kind.fields)[0] %}
+   <form action="{{kind.id}}" method="POST">
+     <fieldset>
+       <input type="hidden" name="id" value="{{item_id}}">
+       <input type="hidden" name="action" value="edit">
+       <legend>Редактирование атрибута</legend>
+       <label for="name">Название</label>
+       <input type="text" name="name" id="name" value="{{item.field_name}}">
+       <label for="description">Описание</label>
+       <input type="text" name="description" id="description" class="input-xxlarge" value="{{item.field_description}}">
+       <br>
+       <button type="submit" class="btn btn-primary">Сохранить</button>
+       <a href="{{kind.id}}" class="btn">Отмена</a>
+     </fieldset>
+   </form>
+  {% end %}
+ {% end %}
+{% end %}

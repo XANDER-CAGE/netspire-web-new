@@ -1,0 +1,60 @@
+{% extends "admin_base.html" %}
+{% block title %}Порты{% end %}
+{% block admin_body %}
+{% import utils %}
+<h3>Порты</h3>
+
+<a href="{{reverse_url('AdminNewPort')}}">Новый порт</a>
+
+<form action="{{reverse_url('AdminPorts')}}" method="GET">
+  <label for="provider">Поставщик:</label>
+  {% set providerS = int(handler.get_argument('provider', '-1')) %}
+  <select name="provider" id="provider">
+    <option value="-1" {% if providerS == -1 %}selected{% end %}>все</option>
+    {% for p in providers %}
+    <option value="{{p.id}}" {% if providerS == p.id %}selected{% end %}>{{p.name}}</option>
+    {% end %}
+  </select>
+  <button type="submit" class="btn">Показать</button>
+</form>
+
+<table class="table table-condensed">
+  <thead>
+    <tr>
+      <th>Дата создания</th>
+      <th>Тип</th>
+      {% if providerS == -1 %}
+      <th>Поставщик</th>
+      {% end %}
+      <th>Логин</th>
+      <th>Контракт</th>
+      <th>Информация</th>
+      <th>ЦУ</th>
+      <th>АТС</th>
+      <th>Скорость</th>
+      <th>&nbsp;</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for p in ports %}
+      {% if providerS == -1 or p.port_provider_id == providerS %}
+    <tr>
+      <td>{{utils.datetime_utc_to_local(p.created_at)}}</td>
+      <td>{{p.port_type.name}}</td>
+      {% if providerS == -1 %}
+      <td>{{p.port_provider.name}}</td>
+      {% end %}
+      <td>{{p.account.login}}</td>
+      <td>{{p.account.contract.key_field.info_value}}</td>
+      <td>{{p.info}}</td>
+      <td>{{p.co.area.name}}</td>
+      <td>{{p.co.name}}</td>
+      <td>{{p.speed.input}}/{{p.speed.output}}</td>
+      <td><a href="{{reverse_url('AdminEditPort', p.id)}}">изменить</a></td>
+    </tr>
+      {% end %}
+    {% end %}
+  </tbody>
+</table>
+
+{% end %}

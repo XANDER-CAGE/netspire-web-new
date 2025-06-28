@@ -1,0 +1,18 @@
+{% extends "admin_contract_base.html" %}
+{% block admin_contract_section %}
+{% from operator import attrgetter %}
+<table class="table">
+  <tbody>
+    {% for i in sorted(contract.infos, key=attrgetter('field.sort_order')) %}
+    <tr>
+      <th>{{i.field.field_name}}</th>
+      <td>{{i.info_value}}</td>
+    </tr>
+    {% end %}
+  </tbody>
+</table>
+
+{% if contract.state == 'open' and not admin.has_role('bb') %}
+<a href="{{reverse_url('AdminContractInfoEdit', contract.id)}}" class="btn"><i class="icon-pencil"></i> Редактировать</a>
+{% end %}
+{% end %}

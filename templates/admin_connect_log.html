@@ -1,0 +1,31 @@
+{% extends "admin_base.html" %}
+{% block title %}Последние подключения{% end %}
+{% block admin_body %}
+  <h3>Последние подключения</h3>
+  <form action="{{reverse_url('AdminConnectLog')}}" method="GET" class="form-inline">
+    <input type="text" name="q" value="{{searched_for}}" placeholder="часть логина">
+    <button type="submit" class="btn">Искать</button>
+  </form>
+  <table class="table table-condensed">
+    <thead>
+      <tr>
+	<th>Дата</th>
+	<th>Логин</th>
+	<th>Сообщение</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for timestamp, login, status, message in results %}
+        <tr>
+	  <td>{{timestamp}}</td>
+	  <td><code>{{login}}</code></td>
+	  {% if status %}
+	    <td class="text-success">{{message}}</td>
+	  {% else %}
+	    <td class="text-error">{{message}}</td>
+	  {% end %}
+	</tr>
+      {% end %}
+    </tbody>
+  </table>
+{% end %}

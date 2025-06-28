@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link href="{{static_url('bootstrap/css/bootstrap.min.css')}}" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <title>{% block title %}Default title{% end %}</title>
+  <style>
+    body {
+      padding-top: 40px; /* 60px to make the container go all the way to the bottom of the topbar */
+    }
+  </style>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.0/jquery-ui.min.js"></script>
+  <link href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.0/themes/base/jquery-ui.css" rel="stylesheet">
+<style>
+  .bd-placeholder-img {
+    font-size: 1.125rem;
+    text-anchor: middle;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+  }
+
+  @media (min-width: 768px) {
+    .bd-placeholder-img-lg {
+      font-size: 3.5rem;
+    }
+  }
+
+  .b-example-divider {
+    height: 3rem;
+    background-color: rgba(0, 0, 0, .1);
+    border: solid rgba(0, 0, 0, .15);
+    border-width: 1px 0;
+    box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15);
+  }
+
+  .b-example-vr {
+    flex-shrink: 0;
+    width: 1.5rem;
+    height: 100vh;
+  }
+
+  .bi {
+    vertical-align: -.125em;
+    fill: currentColor;
+  }
+
+  .nav-scroller {
+    position: relative;
+    z-index: 2;
+    height: 2.75rem;
+    overflow-y: hidden;
+  }
+
+  .nav-scroller .nav {
+    display: flex;
+    flex-wrap: nowrap;
+    padding-bottom: 1rem;
+    margin-top: -1px;
+    overflow-x: auto;
+    text-align: center;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+</style>
+<link href="https://getbootstrap.com/docs/5.3/examples/dashboard/dashboard.css" rel="stylesheet">
+</head>
+<body>
+  <div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar-inner">
+      <div class="container-fluid">
+        <a class="brand" href="{{reverse_url('AdminHome')}}"><i class="icon-home icon-white"></i> Billing</a>
+        <ul class="nav pull-right">
+    <li>
+      <form action="{{reverse_url('ContractSearch')}}" method="GET" class="navbar-form">
+        <input name="search" type="text" placeholder="поиск в контрактах">
+      </form>
+    </li>
+    <li><p class="navbar-text">{{current_user}}</p></li>
+    <li><a href="{{reverse_url('AdminLogout')}}">Выход</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+
+{% set hn = handler.__class__.__name__ %}
+<div class="container-fluid">
+  <div class="row-fluid">
+    <div class="span2">
+      <div class="sidebar-nav">
+        <ul class="nav nav-list">
+          <li class="nav-header">Контракты</li>
+          <li><a href="{{reverse_url('ContractSearch')}}">Поиск</a></li>
+          {% if not admin.has_role('bb') %}
+          <li><a href="{{reverse_url('AdminDebtors')}}">Должники</a></li>
+          <li><a href="{{reverse_url('AdminSuspended')}}">Приостановленные</a></li>
+          <li{% if hn == 'ContractCreate' %} class="active"{% end %}>
+            <a href="{{reverse_url('ContractCreate', '')}}">Создание</a></li>
+          {% end %}
+        </ul>
+        <ul class="nav nav-list">
+          <li class="nav-header"><i class="fas fa-tasks"></i> Статистика</li>
+          {% if not admin.has_role('bb') %}
+          <li{% if hn == 'AdminOnlineSessionsPage' %} class="active"{% end %}>
+            <a href="{{reverse_url('AdminOnlineList')}}">Клиенты в сети</a></li>
+          <li><a href="/admin/offline">Клиенты НЕ в сети</a></li>
+          <li{% if hn == 'AdminConnectLogPage' %} class="active"{% end %}>
+            <a href="{{reverse_url('AdminConnectLog')}}">Подключения</a></li>
+          {% if admin.has_role('reports') or admin.has_role('super') %}
+          <li{% if hn == 'AdminDebitsReport' %} class="active" {% end %}>
+            <a href="{{reverse_url('AdminDebitsReport')}}">Списания</a></li>
+          <li{% if hn == 'AdminBalancePage' %} class="active" {% end %}><a href="{{reverse_url('AdminBalance')}}">Финансы</a></li>
+          <li{% if hn == 'AdminReportsDebt' %} class="active" {% end %}><a href="{{reverse_url('AdminReportsDebt')}}">Долги по дням</a></li>
+          {% end %}
+          {% end %}
+          {% if admin.has_role('find_session') or admin.has_role('super') or admin.has_role('bb') %}
+          <li{% if hn == 'AdminFindSession' %} class="active" {% end %}>
+            <a href="{{reverse_url('AdminFindSession')}}">Поиск сессий</a></li>
+          {% end %}
+        </ul>
+        {% if admin.has_role('port') %}
+        <ul class="nav nav-list">
+          <li class="nav-header"><i class="fas fa-server"></i> Оборудование</li>
+          <li{% if hn == 'AdminPortsStats' %} class="active"{% end %}>
+            <a href="{{reverse_url('AdminPortsStats')}}">Статистика</a></li>
+          <li{% if hn == 'AdminPorts' %} class="active"{% end %}>
+            <a href="{{reverse_url('AdminPorts')}}">Активные</a></li>
+        </ul>
+        {% end %}
+        {% if not admin.has_role('bb') %}
+	<ul class="nav nav-list">
+          <li class="nav-header"><i class="fas fa-cogs"></i> Настройки</li>
+	  {% if admin.has_role('super') or admin.has_role('view_logons') %}
+	  <li{% if hn == 'AdminViewLogons' %} class="active"{% end %}>
+	    <a href="{{reverse_url('AdminViewLogons')}}">Журнал входа</a></li>
+	  {% end %}
+	  {% if admin.has_role('super') %}
+	  <li{% if hn == 'AdminViewAdmins' %} class="active"{% end %}>
+	    <a href="{{reverse_url('AdminViewAdmins')}}">Пользователи</a></li>
+	  {% end %}
+          <li{% if hn == 'SettingsInfos' %} class="active"{% end %}>
+	    <a href="{{reverse_url('SettingsInfos', '')}}">Реквизиты</a></li>
+          <li{% if hn == 'SettingsKinds' %} class="active"{% end %}>
+	    <a href="{{reverse_url('SettingsKinds')}}">Типы контрактов</a></li>
+	{% if admin.has_role('plan') or admin.has_role('super') %}
+	  <li{% if hn.startswith('AdminSettingsPlans') %} class="active"{% end %}>
+	    <a href="{{reverse_url('AdminSettingsPlans')}}">Тарифные планы</a></li>
+	{% end %}
+	  <li{% if hn == 'AdminSettingsCurrencyPage' %} class="active"{% end %}>
+	    <a href="{{reverse_url('AdminSettingsCurrency')}}">Валюты</a></li>
+	{% if admin.has_role('port') %}
+          <li{% if hn == 'AdminSettingsSpeeds' %} class="active"{% end %}>
+	    <a href="{{reverse_url('AdminSettingsSpeeds')}}">Скорости портов</a></li>
+          <li{% if hn == 'AdminSettingsCOAreas' %} class="active"{% end %}>
+	    <a href="{{reverse_url('AdminSettingsCOAreas')}}">Центральные узлы</a></li>
+	{% end %}
+        </ul>
+        {% end %}
+      </div>
+    </div>
+    <div class="span10">
+      {% block admin_body %}<h3>Coming soon...</h3>{% end %}
+    </div>
+  </div>
+</div>
+
+<script src="{{static_url('bootstrap/js/bootstrap.min.js')}}"></script>
+</body>
+</html>

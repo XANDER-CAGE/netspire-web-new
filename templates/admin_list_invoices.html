@@ -1,0 +1,26 @@
+{% extends "admin_contract_base.html" %}
+{% block admin_contract_section %}
+
+<table class="table table-condensed">
+  <thead>
+    <tr>
+      <th>Год</th>
+      <th>Месяц</th>
+      <th>Номер</th>
+      <th>Статус</th>
+      <th>Дата создания</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for i in invoices %}
+    <tr>
+      <td>{{i["year"]}}</td>
+      <td>{{month_names[i["month"]-1]}}</td>
+      <td><a href="{{reverse_url('AdminViewInvoice', contract.id, i['year'], i['month'])}}">{{i["invoice_id"]}}</a></td>
+      <td>{% if i["approved"] %}утверждён{% else %}не утверждён{% end %}</td>
+      <td>{{i["created_at"]}}</td>
+    </tr>
+    {% end %}
+  </tbody>
+</table>
+{% end %}

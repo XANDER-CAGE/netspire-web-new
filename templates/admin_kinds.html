@@ -1,0 +1,38 @@
+{% extends "admin_base.html" %}
+{% block title %}Типы контрактов{% end %}
+{% block admin_body %}
+{% import model %}
+
+<h3>Типы контрактов</h3>
+
+{% if delete_failed %}
+<p class="text-error">Невозможно удалить данный тип, так как с ним связан набор реквизитов.</p>
+{% end %}
+
+<table class="table">
+  <thead>
+    <tr><th>Название</th><th>Описание</th><th>&nbsp;</th></tr>
+  </thead>
+  <tbody>
+    {% for kind in kinds %}
+    <tr>
+      <td>{{kind.kind_name}}</td>
+      <td>{{kind.description}}</td>
+      <td><a href="{{reverse_url('SettingsKinds')}}?remove={{kind.id}}"><i class="icon-remove"></i> удалить</a></td>
+    </tr>
+    {% end %}
+  </tbody>
+</table>
+
+<form action="" method="POST">
+  <fieldset>
+    <legend>Новый тип контракта</legend>
+    <label for="name">Название</label>
+    <input name="name" id="name" type="text">
+    <label for="description">Описание</label>
+    <input name="description" id="description" type="text" class="input-large">
+    <br>
+    <button type="submit" class="btn btn-primary">Создать</button>
+  </fieldset>
+</form>
+{% end %}

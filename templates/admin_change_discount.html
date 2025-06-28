@@ -1,0 +1,35 @@
+{% extends "admin_contract_base.html" %}
+{% block admin_contract_section %}
+
+  <h4>{{account.login}}: скидка</h4>
+
+  {% module FlashMessage(handler.get_flash_message()) %}
+
+  {% set sp = account.service_parameters[0] if len(account.service_parameters) else None %}
+  {% set sp = None if (sp is not None and sp.discount == 0) else sp %}
+
+  {% set discount = 0 if sp is None else sp.discount %}
+  {% import utils %}
+  {% set special_till = None if sp is None or sp.special_till is None else utils.datetime_utc_to_local(sp.special_till).date() %}
+  {% import datetime %}
+  {% set today = datetime.date.today() %}
+  {% set st_fallback = special_till if special_till is not None else today + datetime.timedelta(365) %}
+  <form action="{{reverse_url('AdminChangeDiscount', account.id)}}" method="POST">
+    <label>Текущая скидка: {{discount}} %</label>
+    <label for="discount">Новая скидка:</label>
+    <div class="input-append">
+      <input type="text" name="discount" id="discount" value="{{handler.get_argument('discount', discount)}}" class="input-mini">
+      <span class="add-on">%</span>
+    </div>
+    <label class="radio"><input id="s0" type="radio" name="special" value="0"{% if special_till is None %} checked{% end %}>обычная</label>
+    <label class="radio"><input id="s1" type="radio" name="special" value="1"{% if special_till is not None %} checked{% end %}>на срок</label>
+    <label for="special_till">Срок скидки:</label>
+    <input type="text" id="special_till" name="special_till" value="{{handler.get_argument('special_till', st_fallback)}}">
+    <br>
+    <button type="submit" class="btn btn-primary">Применить</button>
+    <a href="{{reverse_url('AdminContractAccounts', account.contract.id)}}" class="btn">Отмена</a>
+  </form>
+  <script>
+    $("#special_till").datepicker({ dateFormat: "yy-mm-dd" });
+  </script>
+{% end %}

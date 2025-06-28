@@ -1,0 +1,50 @@
+{% extends "admin_contract_base.html" %}
+{% block admin_contract_section %}
+{% import utils %}
+
+  <h4>Детали сессии {{session.id}}</h4>
+
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+	<th>Логин</th>
+	<th>Начало</th>
+	<th>Конец</th>
+	<th>IP-адрес</th>
+	<th>Входящий трафик, МБ</th>
+	<th>Исходящий трафик, МБ</th>
+	<th>Сумма</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+	<td>{{session.account.login}}</td>
+	<td>{{utils.datetime_utc_to_local(session.started_at)}}</td>
+	<td>{{utils.datetime_utc_to_local(session.finished_at)}}</td>
+	<td>{{session.ip}}</td>
+	<td>{{'%.2f' % (session.octets_in / 1048576.)}}
+	<td>{{'%.2f' % (session.octets_out / 1048576.)}}
+	<td>{{'%.6f' % session.amount}}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+	<th>Класс трафика</th>
+	<th>Входящий, МБ</th>
+	<th>Исходящий, МБ</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for detail in session.details %}
+        <tr>
+	  <td>{{detail.traffic_class}}</td>
+	  <td>{{'%.2f' % (detail.octets_in / 1048576.)}}
+	  <td>{{'%.2f' % (detail.octets_out / 1048576.)}}
+	</tr>
+      {% end %}
+    </tbody>
+  </table>
+{% end %}

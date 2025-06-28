@@ -1,0 +1,57 @@
+{% extends "admin_contract_base.html" %}
+{% block admin_contract_section %}
+
+  <h4>Редактирование аккаунта {{account.login}}</h4>
+
+  {% module FlashMessage(handler.get_flash_message()) %}
+
+  <form action="{{reverse_url('AdminEditAccount', account.id)}}" method="POST" autocomplete="off">
+    Состояние:
+    {% if account.active %}
+      <strong class="text-success">включен</strong>
+      {% if admin.has_role('super') or admin.has_role('account_toggle') %}
+      <button type="submit" class="btn btn-danger" name="action" value="toggle_active">Выключить</button>
+      {% end %}
+    {% else %}
+      <strong class="text-error">выключен</strong>
+      {% if admin.has_role('super') or admin.has_role('account_toggle') %}
+      <button type="submit" class="btn btn-success" name="action" value="toggle_active">Включить</button>
+      {% end %}
+    {% end %}
+  </form>
+  <form action="{{reverse_url('AdminEditAccount', account.id)}}" method="POST" autocomplete="off">
+    <label for="contract_id">Новый контракт</label>
+    <input type="text" name="contract_id" id="contract_id" value="{{account.contract_id}}">
+    <label for="contract_id">Изменить логин</label>
+    <input type="text" name="login" id="login" value="{{account.login}}">
+    <label for="password">Новый пароль</label>
+    <input type="password" name="password" id="password">
+    <label for="password2">Подтверждение пароля</label>
+    <input type="password" name="password2" id="password2">
+    <label for="ip">Статический IP-адрес</label>
+    <input type="text" name="ip" id="ip" value="{{account.static_ip_address()}}">
+    <br>
+    <button type="submit" class="btn btn-primary" name="action" value="apply">Применить</button>
+    <a href="{{reverse_url('AdminContractAccounts', contract.id)}}" class="btn">Отмена</a>
+  </form>
+
+  <h4>Тарифный план</h4>
+  <form action="{{reverse_url('AdminEditAccount', account.id)}}" method="POST" autocomplete="off">
+    {% if account.plan_id != account.new_plan_id %}
+     {% if account.active or is_online %}
+      <p class="text-error">Немедленный перевод невозможен, пока аккаунт включен или находится в сети.</p>
+     {% else %}
+      <p class="text-info">Запланирован переход на план {{new_plan.code}} ({{new_plan.name}}).</p>
+      <button type="submit" name="action" value="change_plan_immediate" class="btn btn-warning">Перевести немедленно</button>
+     {% end %}
+    {% end %}
+    <label for="new_plan">Запланировать переход на план:</label>
+    <select name="new_plan">
+      {% for p in plans %}
+      <option value="{{p.id}}">{{p.code}} ({{p.name}})</option>
+      {% end %}
+    </select>
+    <br>
+    <button type="submit" name="action" value="change_plan" class="btn btn-primary">Перевести</button>
+  </form>
+{% end %}

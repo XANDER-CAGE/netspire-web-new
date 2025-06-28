@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Пожалуйста, представьтесь</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    <link href="{{static_url('bs3/css/bootstrap.min.css')}}" rel="stylesheet" media="screen">
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="../../assets/js/html5shiv.js"></script>
+      <script src="../../assets/js/respond.min.js"></script>
+    <![endif]-->
+    <!-- jQuery -->
+    <script src="{{static_url('jquery-1.10.2.min.js')}}"></script>
+    <link href="{{static_url('signin.css')}}" rel="stylesheet">
+  </head>
+  <body>
+
+    <div class="container">
+      <form action="login" method="POST" class="form-signin">
+        <h2 class="form-signin-heading">Пожалуйста, представьтесь</h2>
+        <input type="text" name="login" class="form-control" placeholder="логин" autofocus value="{{handler.get_argument('login', '')}}">
+        <input type="password" name="password" class="form-control" placeholder="пароль">
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Войти</button>
+	<input type="hidden" name="next_url" value="{{handler.get_argument('next_url', reverse_url('UserDashboard'))}}">
+      </form>
+    </div>
+
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="{{static_url('bs3/js/bootstrap.min.js')}}"></script>
+  </body>
+</html>

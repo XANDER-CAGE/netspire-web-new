@@ -1,0 +1,32 @@
+{% extends "admin_base.html" %}
+{% block title %}Новый порт{% end %}
+{% block admin_body %}
+{% import utils %}
+<h3>Новый порт</h3>
+
+<ul>
+  <li>Тип: {{port_type.name}}</li>
+  <li>Поставщик: {{provider.name}}</li>
+  {% if account is not None %}
+  <li>Логин: {{account.login}} ({{account.contract.key_field.info_value}})</li>
+  {% else %}
+  <li>Логин: {{login}} (<b>ВНИМАНИЕ</b>: данный логин не найден)</li>
+  {% end %}
+  <li>Информация: {{info}}</li>
+  <li>АТС: {{co.area.name}} {{co.name}}</li>
+  <li>Скорость: {{speed.input}}/{{speed.output}}</li>
+</ul>
+
+<form action="{{reverse_url('AdminNewPort')}}" method="POST">
+  <input type="hidden" name="port_type" value="{{port_type.id}}">
+  <input type="hidden" name="port_provider" value="{{provider.id}}">
+  <input type="hidden" name="login" value="{{login}}">
+  <input type="hidden" name="info" value="{{info}}">
+  <input type="hidden" name="co" value="{{co.id}}">
+  <input type="hidden" name="speed" value="{{speed.id}}">
+
+  <button type="submit" class="btn" name="action" value="edit">Продолжить редактирование</button>
+  <button type="submit" class="btn btn-primary" name="action" value="create">Создать</button>
+</form>
+
+{% end %}

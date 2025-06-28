@@ -1,0 +1,12 @@
+{% extends "admin_contract_base.html" %}
+{% block admin_contract_section %}
+
+  <h4>Закрытие аккаунта {{account.login}}</h4>
+
+  <p>Вы собираетесь закрыть аккаунт {{account.login}}.  Пожалуйста, подтвердите своё намерение.</p>
+  <form action="{{reverse_url('AdminCloseAccount', account.id)}}" method="POST">
+    <input type="hidden" name="close_contract" value="{{handler.get_argument('close_contract', '0')}}">
+    <button class="btn btn-danger">Закрыть</button>
+    <a href="{{reverse_url('AdminContractAccounts', account.contract.id)}}" class="btn">Отмена</a>
+  </form>
+{% end %}

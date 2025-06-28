@@ -1,0 +1,49 @@
+{% extends "admin_contract_base.html" %}
+{% block admin_contract_section %}
+{% import utils %}
+
+ <form action="" method="GET">
+  <label for="from">Начальная дата</label>
+  <input type="text" name="from" id="from" value="{{handler.get_argument('from', '')}}" autocomplete="off">
+  <label for="till">Конечная дата</label>
+  <input type="text" name="till" id="till" value="{{handler.get_argument('till', '')}}" autocomplete="off">
+  <label for="kind">Тип операции</label>
+  <select name="kind" id="kind">
+    <option value="all" {% if handler.get_argument('kind', 'all') == 'all' %} selected{% end %}>любой</option>
+    <option value="debit" {% if handler.get_argument('kind', 'all') == 'debit' %} selected{% end %}>списания</option>
+    <option value="credit" {% if handler.get_argument('kind', 'all') == 'credit' %} selected{% end %}>начисления</option>
+  </select>
+  <br>
+  <button type="submit" class="btn">Показать</button>
+ </form>
+
+ {% if transactions is not None %}
+  <table class="table">
+    <thead>
+      <tr>
+	<th>Дата</th>
+	<th>Оператор</th>
+	<th>Валюта</th>
+	<th>Сумма в {{contract.currency.name}}</th>
+	<th>Баланс</th>
+	<th>Комментарий</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in transactions %}<tr>
+	<td>{% if admin.has_role('foper') %}<a href="{{reverse_url('AdminEditFinTransaction', contract.id, t.id)}}">{{utils.datetime_utc_to_local(t.created_at)}}</a>{% else %}{{utils.datetime_utc_to_local(t.created_at)}}{% end %}</td>
+	<td>{{t.admin.real_name}}</td>
+	<td>{{t.currency.name}}</td>
+	<td>{{utils.human_money(t.amount_in_contract_currency)}}</td>
+	<td>{{utils.human_money(t.balance_after)}}</td>
+	<td>{{t.comment}}</td>
+      </tr>{% end %}
+    </tbody>
+  </table>
+ {% end %}
+
+   <script>
+   $("#from").datepicker({ dateFormat: "yy-mm-dd" });
+   $("#till").datepicker({ dateFormat: "yy-mm-dd" });
+   </script>
+{% end %}

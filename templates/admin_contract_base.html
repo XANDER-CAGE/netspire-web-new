@@ -1,0 +1,41 @@
+{% extends "admin_base.html" %}
+{% block title %}Контракт {{contract.id}}{% end %}
+{% block admin_body %}
+
+<h3{% if contract.state=='closed' %} class="muted"{% end %}>Контракт {{contract.id}}: {{contract.key_field.info_value}} <small>{{contract.kind.kind_name}}</small></h3>
+
+{% if contract.state=='closed' %}
+<p><i class="text-error">контракт расторжен</i></p>
+{% end %}
+
+<ul class="nav nav-tabs">
+  <li{% if section == '' %} class="active"{% end %}>
+    <a href="{{reverse_url('AdminContractOverview', contract.id)}}"><i class="fas fa-eye"></i>Обзор</a>
+  </li>
+  <li{% if section.startswith('info') %} class="active"{% end %}>
+    <a href="{{reverse_url('AdminContractInfo', contract.id)}}"><i class="fas fa-info-circle"></i> Реквизиты</a>
+  </li>
+  <li{% if section == 'accounts' %} class="active"{% end %}>
+    <a href="{{reverse_url('AdminContractAccounts', contract.id)}}?action=display"><i class="fas fa-user-friends"></i> Аккаунты</a>
+  </li>
+  {% if admin.has_role('foper') %}
+  <li{% if section == 'foper' %} class="active"{% end %}>
+    <a href="{{reverse_url('AdminContractFOper', contract.id)}}"><i class="fas fa-money-check"></i> Финансовые проводки</a>
+  </li>
+  {% end %}
+  {% if not admin.has_role('bb') %}
+  <li{% if section == 'flog' %} class="active"{% end %}>
+    <a href="{{reverse_url('AdminContractFlog', contract.id)}}"><i class="fas fa-file-invoice-dollar"></i> Финансовая история</a>
+  </li>
+  {% end %}
+  <li{% if section == 'sessions' %} class="active"{% end %}>
+    <a href="{{reverse_url('AdminContractSessions', contract.id)}}"><i class="fas fa-network-wired"></i> Сессии</a>
+  </li>
+  <li{% if section == 'files' %} class="active"{% end %}>
+    <a href="{{reverse_url('AdminContractFiles', contract.id)}}?action=display"<i class="fas fa-file-word"> Файлы</a>
+  </li>
+</ul>
+
+{% block admin_contract_section %}{% end %}
+
+{% end %}
