@@ -392,17 +392,15 @@ def get_all_mac_addresses():
 
 
 def get_online_sessions_with_mac(session):
-    """Получает онлайн сессии с MAC-адресами"""
+    """Получает онлайн сессии с MAC-адресами из базы данных"""
     # Получаем базовые данные сессий
     online_sessions = get_online_sessions(session)
     
-    # Получаем все MAC-адреса одним запросом
-    mac_addresses = get_all_mac_addresses()
-    
-    # Добавляем MAC-адреса к сессиям
+    # Добавляем MAC-адреса из поля cid в базе данных
     sessions_with_mac = []
     for s, a, c in online_sessions:
-        mac_address = mac_addresses.get(s.ip, 'unknown')
+        # Используем MAC-адрес из базы данных (поле cid)
+        mac_address = s.cid if s.cid else 'unknown'
         sessions_with_mac.append((s, a, c, mac_address))
     
     return sessions_with_mac

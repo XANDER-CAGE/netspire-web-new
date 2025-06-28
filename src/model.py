@@ -266,6 +266,7 @@ class TrafficSession(Base):
     id = Column(Integer, primary_key=True)
     account_id = Column(Integer, ForeignKey('accounts.id'), nullable=False)
     sid = Column(String, nullable=False)
+    cid = Column(String, nullable=True)  # MAC-адрес (Calling-Station-Id)
     ip = Column(String, nullable=False)
     octets_in = Column(Integer, nullable=False, default=0)
     octets_out = Column(Integer, nullable=False, default=0)

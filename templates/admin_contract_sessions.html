@@ -40,7 +40,13 @@
 	<td>{{utils.datetime_utc_to_local(s.started_at)}}</td>
 	<td>{{utils.datetime_utc_to_local(s.finished_at)}}</td>
 	<td>{{s.ip}}</td>
-  <td>{{s.sid}}</td>
+  <td>
+    {% if s.cid and s.cid != '' %}
+      <code style="font-family: monospace;">{{s.cid}}</code>
+    {% else %}
+      <span class="muted">-</span>
+    {% end %}
+  </td>
 	<td>{{'{:.2f}'.format(s.octets_in / 1048576.)}}
 	<td>{{'{:.2f}'.format(s.octets_out / 1048576.)}}
 	<td>{{'{:.6f}'.format(s.amount)}}</td>
@@ -49,14 +55,14 @@
         {% set total_out += s.octets_out %}
       {% end %}
       <tr>
-	<th colspan="4">Итого</th>
+	<th colspan="5">Итого</th>
 	<th>{{'{:.2f}'.format(total_in / 1048576.)}}
 	<th>{{'{:.2f}'.format(total_out / 1048576.)}}
 	<td>&nbsp;</td>
       </tr>
       {% for t in traffic %}
       <tr>
-	<th colspan="4">{{t[0]}}</th>
+	<th colspan="5">{{t[0]}}</th>
 	<th>{{'{:.2f}'.format(t[1] / 1048576)}}
 	<th>{{'{:.2f}'.format(t[2] / 1048576)}}
 	<td>&nbsp;</td>

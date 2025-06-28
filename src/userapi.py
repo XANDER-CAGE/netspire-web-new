@@ -154,6 +154,7 @@ def sessions(session_id, from_moment, till_moment):
             item = dict(started_at=str(datetime_utc_to_local(s.started_at)),
                         finished_at=str(datetime_utc_to_local(s.finished_at)),
                         ip=s.ip,
+                        cid=s.cid if s.cid else '',  # MAC-адрес
                         octets_in=s.octets_in,
                         octets_out=s.octets_out,
                         amount='{:.6f}'.format(s.amount),
